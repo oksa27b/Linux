@@ -1,0 +1,157 @@
+Задание:
+Используя команду cat, создать два файла с данными, а затем объединить их. Просмотреть
+содержимое созданного файла. Переименовать файл, дав ему новое имя.
+Создать несколько файлов. Создать директорию, переместить файл туда. Удалить все созданные в
+этом и предыдущем задании директории и файлы.
+Создать файл file1 и наполнить его произвольным содержимым. Скопировать его в file2. Создать
+символическую ссылку file3 на file1. Создать жесткую ссылку file4 на file1. Посмотреть, какие
+айноды у файлов. Удалить file1. Что стало с остальными созданными файлами? Попробовать
+вывести их на экран.
+Дать созданным файлам другие, произвольные имена. Создать новую символическую ссылку.
+Переместить ссылки в другую директорию.
+Результат:
+Текст команд, которые применялись при выполнении задания. Присылаем в формате текстового
+документа: задание и команды для решения (без вывода). Формат - PDF (один файл на все
+задания), можно в другом формате.
+mkdir test4
+  189  ll
+  190  cd test4
+  191  cat file1
+  192  cat > file1.txt
+  193  ll
+  194  cat > file2.txt
+  195  cat file1.txt file2.txt >
+  196  ll
+  197  cat file1.txt file2.txt >
+  198  ll
+  199  cat file1.txt > file2.txt
+  200  ll
+  201  cat file3
+  202  cd ..
+  203  ll
+  204  cd test4
+  205  ll
+  206  cat > file3
+  207  ll
+  208  cat > file1
+  209  ll
+  210  cat file3.txt
+  211  cat > file3.txt
+  212  mv file3.txt filenew.txt
+  213  ll
+215  cd ..
+  216  touch 333
+  217  touch 555
+  218  touch 777
+  219  ll
+  220  mkdir test5
+  221  ll
+  222  pwd
+  223  cd test4
+  224  ll
+  225  mrdir test5
+  226  pwd
+  227  ll
+  228  cd ..
+  229  ll
+  230  rm test5/
+  231  rm -r test5
+  232  ll
+  233  cd test4
+  234  ll
+  235  mkdir test5
+  236  ll
+  237  pwd
+  238  cd ..
+  239  ll
+  240  rm 333
+  241  rm 555
+  242  rm 777
+  243  ll
+  244  cd test4
+  245  touch 333
+  246  touch 555
+  247  touch 777
+  248  ll
+  249  pwd
+  250  mv 333 555 777 /home/oksana/test4/test5/
+  251  cd ..
+  252  cd
+  253  ls -al
+  254  cd test5
+  255  cd test4
+  256  ll
+  257  cd test5
+  258  ll
+  259  cd ..
+  260  cd
+  261  ls -al
+  262  rm -r test4
+  263  ls -al
+  ___________________________________________________________________________________
+262  rm -r test4
+  263  ls -al
+  264  cd test5
+  265  history
+  266  touch file1
+  267  ll
+  268  cat file1
+  269  ll
+  270  nano file1
+  271  ll
+  272  touch file2
+  273  ll
+  274  cp file1 file2
+  275  ll
+  276  cat file2
+  277  pwd
+  278  ln -s /home/oksana/file1/ /home/oksana/file3
+  279  ll
+  280  ln -s /home/oksana/file1/ /home/oksana/file4
+  281  ll
+  282  cat file4
+  283  ls -al
+  284  rm file1
+  285  ll
+  286  rm -i file4
+  287  ll
+  288  rm -i file3
+  289  ll
+  290  rm -i file2
+  291  ll
+  292  touch file1
+  293  ll
+  294  cat file1
+  295  ll
+  296  nano file1
+  297  touch file2
+  298  ll
+  299  cp file1 file2
+  300  ll
+  301  cat file2
+  302  pwd
+  303  ln -s /home/oksana/file1/ /home/oksana/file3
+  304  ll
+  305  ln /home/oksana/file1/ /home/oksana/file4
+  306  ln /home/oksana/file1 /home/oksana/file4
+  307  ll
+  308  cat file4
+  309  ls -al
+  310  rm file1
+  311  ll
+  312  cat file3
+  313  cat file4
+принскрин 
+принскрин
+
+315  mv file3 file0
+  316  mv file4 file9
+  317  ln -s /home/oksana/file9 /home/oksana/file0
+  318  ll
+  319  mkdir test5
+  320  mv file9 test5
+  321  ll
+  322  mv file0 test5
+  323  ll
+  324  cd test5
+  325  ll
