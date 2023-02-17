@@ -1,0 +1,1719 @@
+Операционные системы и виртуализация
+Лекция
+Полный цикл работы с пакетом, мы его нашли, установили, удалили разными способами, потом избавились от разных зависимостей
+Oksana@oksana-VirtualBox: ~$ sudo su переходим в пользователя root
+root@oksana-VirtualBox:/home/oksana# apt update мы видим наша система пошла в основные репозитории ubuntu наша система настроена по умолчанию, скачала оттуда файлы и здесь мы увидели сколько там пакетов, которые можем обновить
+root@oksana-VirtualBox:/home/oksana# apt search nginx начнем с поиска по названию пакет и по описанию, как видите здесь довольно много пакетов
+root@oksana-VirtualBox:/home/oksana# apt list nginx  если мы хотим посмотреть только название, у нас получился 1 пакет, можно спокойно ставить. Nginx мы как раз и будем здесь использовать как название пакета.
+Здесь указан раздел, в нем говорится, что этот пакет находится в jammy-updates, версия указана 1.18.8 позже зайдем на сайт и посмотри какой сейчас версия
+root@oksana-VirtualBox:/home/oksana# apt list nginx Процедура вставки, установит сам нжикс, сервер и все зависимости и все те пакеты которые приходят с ним
+root@oksana-VirtualBox:/home/oksana# sudo dpkg --configure -a в ручную установила
+root@oksana-VirtualBox:/home/oksana# apt install nginx
+root@oksana-VirtualBox:/home/oksana# apt install -y nginx
+у нас установился сам пакет нжикс, сервер и еще много всего
+root@oksana-VirtualBox:/home/oksana# cd /etc/nginx посмотрим что у нас загрузилось
+root@oksana-VirtualBox:/etc/nginx# ll 
+root@oksana-VirtualBox:/etc/nginx# apt remove nginx видно, что мы удаляем 1 пакет, а не все. проверим режим 
+root@oksana-VirtualBox:/etc/nginx# ll смотрим что у нас изменилось, у нас все осталось
+root@oksana-VirtualBox:/etc/nginx# apt autoremove если хотим удалить все пакеты
+мы вернулись в исходное состояние, пакеты удалились
+root@oksana-VirtualBox:/etc/nginx# ll осталась конфигурация  и это нормально
+заново поставим нжикс  и удалим через бердж, то уже файлы конфиг она удалит нам давайте посмотрим
+root@oksana-VirtualBox:/etc/nginx# apt install nginx
+root@oksana-VirtualBox:/etc/nginx# cd ..
+root@oksana-VirtualBox:/etc# cd nginx
+root@oksana-VirtualBox:/etc/nginx# ll
+конфиги остались, но они не нжикс
+root@oksana-VirtualBox:/etc/nginx# apt purge libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-mail libnginx-mod-stream-geoip2 nginx-common nginx-core удаляем конфигурационные файлы нжикс
+root@oksana-VirtualBox:/etc/nginx# cd ..
+root@oksana-VirtualBox:/etc# cd nginx проверяем
+bash: cd: nginx: Нет такого файла или каталога
+root@oksana-VirtualBox:/etc# apt list mc показывает, что у нас есть пакет mc
+Вывод списка… Готово
+mc/jammy,now 3:4.8.27-1 amd64 [установлен]
+root@oksana-VirtualBox:/etc# apt show mc общая информация о пакете
+зависимости, конфигурацию, в общем подробности о пакете, который мы обычно мы не видим в списке 
+Windows PowerShell
+(C) Корпорация Майкрософт (Microsoft Corporation). Все права защищены.
+
+Попробуйте новую кроссплатформенную оболочку PowerShell (https://aka.ms/pscore6)
+
+PS C:\Windows\system32> ssh -p 8022 oksana@localhost
+oksana@localhost's password:
+Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.15.0-58-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+17 обновлений может быть применено немедленно.
+9 из этих обновлений, являются стандартными обновлениями безопасности.
+Чтобы просмотреть дополнительные обновления выполните: apt list --upgradable
+
+Last login: Wed Feb 15 11:29:36 2023 from 10.0.2.2
+oksana@oksana-VirtualBox:~$ sudo su
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+[sudo] пароль для oksana:
+root@oksana-VirtualBox:/home/oksana# apt update
+Пол:1 http://security.ubuntu.com/ubuntu jammy-security InRelease [110 kB]
+Пол:2 http://security.ubuntu.com/ubuntu jammy-security/main i386 Packages [255 kB]
+Пол:3 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [634 kB]
+Пол:4 http://security.ubuntu.com/ubuntu jammy-security/main Translation-en [133 kB]
+Пол:5 http://security.ubuntu.com/ubuntu jammy-security/main amd64 DEP-11 Metadata [41.5 kB]
+Пол:6 http://security.ubuntu.com/ubuntu jammy-security/main amd64 c-n-f Metadata [8,384 B]
+Пол:7 http://security.ubuntu.com/ubuntu jammy-security/restricted amd64 Packages [571 kB]
+Пол:8 http://security.ubuntu.com/ubuntu jammy-security/restricted Translation-en [87.3 kB]
+Пол:9 http://security.ubuntu.com/ubuntu jammy-security/universe i386 Packages [490 kB]
+Пол:10 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 Packages [640 kB]
+Пол:11 http://security.ubuntu.com/ubuntu jammy-security/universe Translation-en [88.1 kB]
+Пол:12 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 DEP-11 Metadata [13.3 kB]
+Сущ:13 http://au.archive.ubuntu.com/ubuntu jammy InRelease
+Пол:14 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 c-n-f Metadata [11.3 kB]
+Пол:15 http://au.archive.ubuntu.com/ubuntu jammy-updates InRelease [119 kB]
+Пол:16 http://au.archive.ubuntu.com/ubuntu jammy-backports InRelease [107 kB]
+Пол:17 http://au.archive.ubuntu.com/ubuntu jammy-updates/main i386 Packages [438 kB]
+Пол:18 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [886 kB]
+Пол:19 http://au.archive.ubuntu.com/ubuntu jammy-updates/main Translation-en [195 kB]
+Пол:20 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 DEP-11 Metadata [102 kB]
+Пол:21 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 c-n-f Metadata [13.5 kB]
+Пол:22 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [609 kB]
+Пол:23 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted i386 Packages [25.9 kB]
+Пол:24 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted Translation-en [93.5 kB]
+Пол:25 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [806 kB]
+Пол:26 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe i386 Packages [571 kB]
+Пол:27 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe Translation-en [145 kB]
+Пол:28 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 DEP-11 Metadata [265 kB]
+Пол:29 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 c-n-f Metadata [15.4 kB]
+Пол:30 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse i386 Packages [3,156 B]
+Пол:31 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 Packages [9,340 B]
+Пол:32 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 DEP-11 Metadata [940 B]
+Пол:33 http://au.archive.ubuntu.com/ubuntu jammy-backports/main amd64 DEP-11 Metadata [7,976 B]
+Пол:34 http://au.archive.ubuntu.com/ubuntu jammy-backports/universe amd64 DEP-11 Metadata [12.5 kB]
+Получено 7,507 kB за 12с (650 kB/s)
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Может быть обновлено 24 пакета. Запустите «apt list --upgradable» для их показа.
+root@oksana-VirtualBox:/home/oksana# apt search nginx
+Сортировка… Готово
+Полнотекстовый поиск… Готово
+centreon-plugins/jammy,jammy 0.0~20220113-1 all
+  Collection of Nagios plugins to monitor OS, services and network devices
+
+collectd-core/jammy-updates 5.12.0-10ubuntu0.1 amd64
+  statistics collection and monitoring daemon (core system)
+
+elpa-nginx-mode/jammy,jammy 1.1.9-2 all
+  major mode for editing nginx config files
+
+fcgiwrap/jammy 1.1.0-12 amd64
+  simple server to run CGI applications over FastCGI
+
+gitweb/jammy-updates,jammy-updates,jammy-security,jammy-security 1:2.34.1-1ubuntu1.8 all
+  fast, scalable, distributed revision control system (web interface)
+
+golang-github-gorilla-handlers-dev/jammy,jammy 1.4.2-1 all
+  collection of useful handlers for Go's net/http package
+
+golang-github-hashicorp-hcl-dev/jammy,jammy 1.0.0-1.1 all
+  Go implementation of HashiCorp Configuration Language
+
+golang-github-nginxinc-nginx-plus-go-client-dev/jammy,jammy 0.9.0-2 all
+  client for NGINX Plus API for Go (library)
+
+gunicorn/jammy,jammy 20.1.0-2 all
+  Event-based HTTP/WSGI server
+
+gunicorn-examples/jammy,jammy 20.1.0-2 all
+  Event-based HTTP/WSGI server (examples)
+
+kopano-webapp-nginx/jammy,jammy 3.5.14+dfsg1.orig-1 all
+  WebApp for the Kopano Collaboration Platform - Nginx
+
+ledgersmb/jammy,jammy 1.6.33+ds-1 all
+  финансовый учёт и программа ERP
+
+lemonldap-ng-fastcgi-server/jammy,jammy 2.0.13+ds-3ubuntu1 all
+  Lemonldap::NG FastCGI server
+
+lemonldap-ng-handler/jammy,jammy 2.0.13+ds-3ubuntu1 all
+  Lemonldap::NG handler part
+
+libnginx-mod-http-auth-pam/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  PAM authentication module for Nginx
+
+libnginx-mod-http-cache-purge/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Purge content from Nginx caches
+
+libnginx-mod-http-dav-ext/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  WebDAV missing commands support for Nginx
+
+libnginx-mod-http-echo/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Bring echo and more shell style goodies to Nginx
+
+libnginx-mod-http-fancyindex/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Fancy indexes module for the Nginx
+
+libnginx-mod-http-geoip/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  GeoIP HTTP module for Nginx
+
+libnginx-mod-http-geoip2/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  GeoIP2 HTTP module for Nginx
+
+libnginx-mod-http-headers-more-filter/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Set and clear input and output headers for Nginx
+
+libnginx-mod-http-image-filter/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  HTTP image filter module for Nginx
+
+libnginx-mod-http-ndk/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Nginx Development Kit module
+
+libnginx-mod-http-perl/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Perl module for Nginx
+
+libnginx-mod-http-subs-filter/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Substitution filter module for Nginx
+
+libnginx-mod-http-uploadprogress/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Upload progress system for Nginx
+
+libnginx-mod-http-upstream-fair/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Nginx Upstream Fair Proxy Load Balancer
+
+libnginx-mod-http-xslt-filter/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  XSLT Transformation module for Nginx
+
+libnginx-mod-mail/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Mail module for Nginx
+
+libnginx-mod-nchan/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Fast, flexible pub/sub server for Nginx
+
+libnginx-mod-rtmp/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  RTMP support for Nginx
+
+libnginx-mod-stream/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  Stream module for Nginx
+
+libnginx-mod-stream-geoip/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  GeoIP Stream module for Nginx
+
+libnginx-mod-stream-geoip2/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  GeoIP2 Stream module for Nginx
+
+libplack-middleware-file-sass-perl/jammy,jammy 0.03-4.1 all
+  Sass and SCSS support for all Plack-based PSGI frameworks
+
+lua-nginx-cookie/jammy,jammy 0.1.0-1.1 all
+  Pure Lua cookie parser for the nginx embedded Lua language
+
+lua-nginx-dns/jammy,jammy 0.20-1 all
+  DNS resolver for the nginx embedded Lua language
+
+lua-nginx-kafka/jammy,jammy 0.07-1 all
+  Pure Lua Kafka producer for the nginx embedded Lua language
+
+lua-nginx-memcached/jammy,jammy 0.14-1.1 all
+  Pure Lua memcached client driver for the nginx embedded Lua language
+
+lua-nginx-redis/jammy,jammy 0.27-1.1 all
+  Pure Lua redis client driver for the nginx embedded Lua language
+
+lua-nginx-redis-connector/jammy,jammy 0.06-1 all
+  Connection utilities for lua-nginx-redis
+
+lua-nginx-string/jammy,jammy 0.11-1 all
+  String utilities for the nginx embedded Lua language
+
+lua-nginx-websocket/jammy,jammy 0.08-1 all
+  Lua websocket client driver for the nginx embedded Lua language
+
+mighttpd2/jammy 3.4.6-1build1.1 amd64
+  classical web server on WAI/warp
+
+nginx/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  высокоэффективный веб/прокси-сервер
+
+nginx-common/jammy-updates,jammy-updates,jammy-security,jammy-security 1.18.0-6ubuntu14.3 all
+  small, powerful, scalable web/proxy server - common files
+
+nginx-confgen/jammy 2.0-1 amd64
+  nginx configuration file macro language and preprocessor
+
+nginx-core/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  nginx web/proxy server (standard version)
+
+nginx-doc/jammy-updates,jammy-updates,jammy-security,jammy-security 1.18.0-6ubuntu14.3 all
+  small, powerful, scalable web/proxy server - documentation
+
+nginx-extras/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  nginx web/proxy server (extended version)
+
+nginx-full/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  nginx web/proxy server (standard version with 3rd parties)
+
+nginx-light/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+  nginx web/proxy server (basic version)
+
+prometheus-exporter-exporter/jammy 0.4.0-1 amd64
+  simple reverse proxy to other Prometheus exporters
+
+prometheus-nginx-exporter/jammy 0.10.0-1 amd64
+  Prometheus exporter for NGINX webservers
+
+python3-certbot-nginx/jammy,jammy 1.21.0-1 all
+  Nginx plugin for Certbot
+
+python3-django-downloadview/jammy,jammy 2.3.0-1 all
+  efficient static file serving with Django (Python3 version)
+
+python3-geventhttpclient/jammy 1.5.3-1build1 amd64
+  high performance, concurrent HTTP client library for Python using gevent
+
+python3-gunicorn/jammy,jammy 20.1.0-2 all
+  Event-based HTTP/WSGI server (Python 3 libraries)
+
+python3-whitenoise/jammy,jammy 5.2.0-1 all
+  static file serving for WSGI applications (Python 3)
+
+resource-agents-extra/jammy 1:4.7.0-1ubuntu7 amd64
+  Cluster Resource Agents
+
+rt4-fcgi/jammy,jammy 4.4.4+dfsg-2ubuntu1 all
+  External FastCGI support for request-tracker4
+
+rt5-fcgi/jammy,jammy 5.0.1+dfsg-1ubuntu1 all
+  External FastCGI support for request-tracker5
+
+test-kitchen/jammy,jammy 1.23.2-6 all
+  integration tool for Chef
+
+root@oksana-VirtualBox:/home/oksana# apt list nginx
+Вывод списка… Готово
+nginx/jammy-updates,jammy-security 1.18.0-6ubuntu14.3 amd64
+N: Есть 1 дополнительная версия. Используйте «-a» для просмотра.
+root@oksana-VirtualBox:/home/oksana# apt install nginx
+E: Работа dpkg была прервана, вы должны вручную запустить «sudo dpkg --configure -a» для устранения проблемы.
+root@oksana-VirtualBox:/home/oksana# apt install nginx
+E: Работа dpkg была прервана, вы должны вручную запустить «sudo dpkg --configure -a» для устранения проблемы.
+root@oksana-VirtualBox:/home/oksana# sudo dbkg --configure -a
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+sudo: dbkg: команда не найдена
+root@oksana-VirtualBox:/home/oksana# apt install nginx
+E: Работа dpkg была прервана, вы должны вручную запустить «sudo dpkg --configure -a» для устранения проблемы.
+root@oksana-VirtualBox:/home/oksana# sudo dbkg --configure -a
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+sudo: dbkg: команда не найдена
+root@oksana-VirtualBox:/home/oksana# sudo dpkg --configure -a
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+Настраивается пакет linux-modules-extra-5.15.0-60-generic (5.15.0-60.66) …
+Настраивается пакет linux-image-generic-hwe-22.04 (5.15.0.60.58) …
+Настраивается пакет linux-generic-hwe-22.04 (5.15.0.60.58) …
+Обрабатываются триггеры для linux-image-5.15.0-60-generic (5.15.0-60.66) …
+/etc/kernel/postinst.d/initramfs-tools:
+update-initramfs: Generating /boot/initrd.img-5.15.0-60-generic
+/etc/kernel/postinst.d/vboxadd:
+VirtualBox Guest Additions: Building the modules for kernel 5.15.0-60-generic.
+update-initramfs: Generating /boot/initrd.img-5.15.0-60-generic
+/etc/kernel/postinst.d/zz-update-grub:
+Sourcing file `/etc/default/grub'
+Sourcing file `/etc/default/grub.d/init-select.cfg'
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-5.15.0-60-generic
+Found initrd image: /boot/initrd.img-5.15.0-60-generic
+Found linux image: /boot/vmlinuz-5.15.0-58-generic
+Found initrd image: /boot/initrd.img-5.15.0-58-generic
+Found linux image: /boot/vmlinuz-5.15.0-43-generic
+Found initrd image: /boot/initrd.img-5.15.0-43-generic
+Found memtest86+ image: /boot/memtest86+.elf
+Found memtest86+ image: /boot/memtest86+.bin
+Warning: os-prober will not be executed to detect other bootable partitions.
+Systems on them will not be added to the GRUB boot configuration.
+Check GRUB_DISABLE_OS_PROBER documentation entry.
+done
+root@oksana-VirtualBox:/home/oksana# apt install nginx
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  libflashrom1 libftdi1-2 linux-headers-5.15.0-43 linux-headers-5.15.0-43-generic linux-image-5.15.0-43-generic
+  linux-modules-5.15.0-43-generic linux-modules-extra-5.15.0-43-generic
+Для их удаления используйте «sudo apt autoremove».
+Будут установлены следующие дополнительные пакеты:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx-common nginx-core
+Предлагаемые пакеты:
+  fcgiwrap nginx-doc
+Следующие НОВЫЕ пакеты будут установлены:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx nginx-common nginx-core
+Обновлено 0 пакетов, установлено 9 новых пакетов, для удаления отмечено 0 пакетов, и 24 пакетов не обновлено.
+Необходимо скачать 696 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 2,395 kB.
+Хотите продолжить? [Д/н] y
+Прервано.
+root@oksana-VirtualBox:/home/oksana# apt install nginx
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  libflashrom1 libftdi1-2 linux-headers-5.15.0-43 linux-headers-5.15.0-43-generic linux-image-5.15.0-43-generic
+  linux-modules-5.15.0-43-generic linux-modules-extra-5.15.0-43-generic
+Для их удаления используйте «sudo apt autoremove».
+Будут установлены следующие дополнительные пакеты:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx-common nginx-core
+Предлагаемые пакеты:
+  fcgiwrap nginx-doc
+Следующие НОВЫЕ пакеты будут установлены:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx nginx-common nginx-core
+Обновлено 0 пакетов, установлено 9 новых пакетов, для удаления отмечено 0 пакетов, и 24 пакетов не обновлено.
+Необходимо скачать 696 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 2,395 kB.
+Хотите продолжить? [Д/н]
+Пол:1 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 nginx-common all 1.18.0-6ubuntu14.3 [40.0 kB]
+Пол:2 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-http-geoip2 amd64 1.18.0-6ubuntu14.3 [11.9 kB]
+Пол:3 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-http-image-filter amd64 1.18.0-6ubuntu14.3 [15.4 kB]
+Пол:4 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-http-xslt-filter amd64 1.18.0-6ubuntu14.3 [13.7 kB]
+Пол:5 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-mail amd64 1.18.0-6ubuntu14.3 [45.7 kB]
+Пол:6 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-stream amd64 1.18.0-6ubuntu14.3 [72.8 kB]
+Пол:7 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-stream-geoip2 amd64 1.18.0-6ubuntu14.3 [10.1 kB]
+Пол:8 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 nginx-core amd64 1.18.0-6ubuntu14.3 [482 kB]
+Пол:9 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 nginx amd64 1.18.0-6ubuntu14.3 [3,882 B]
+Получено 696 kB за 7с (106 kB/s)
+Предварительная настройка пакетов …
+Выбор ранее не выбранного пакета nginx-common.
+(Чтение базы данных … на данный момент установлено 221013 файлов и каталогов.)
+Подготовка к распаковке …/0-nginx-common_1.18.0-6ubuntu14.3_all.deb …
+Распаковывается nginx-common (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-http-geoip2.
+Подготовка к распаковке …/1-libnginx-mod-http-geoip2_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-http-geoip2 (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-http-image-filter.
+Подготовка к распаковке …/2-libnginx-mod-http-image-filter_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-http-image-filter (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-http-xslt-filter.
+Подготовка к распаковке …/3-libnginx-mod-http-xslt-filter_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-http-xslt-filter (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-mail.
+Подготовка к распаковке …/4-libnginx-mod-mail_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-mail (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-stream.
+Подготовка к распаковке …/5-libnginx-mod-stream_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-stream (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-stream-geoip2.
+Подготовка к распаковке …/6-libnginx-mod-stream-geoip2_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-stream-geoip2 (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета nginx-core.
+Подготовка к распаковке …/7-nginx-core_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается nginx-core (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета nginx.
+Подготовка к распаковке …/8-nginx_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается nginx (1.18.0-6ubuntu14.3) …
+Настраивается пакет nginx-common (1.18.0-6ubuntu14.3) …
+Created symlink /etc/systemd/system/multi-user.target.wants/nginx.service → /lib/systemd/system/nginx.service.
+Настраивается пакет libnginx-mod-http-xslt-filter (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-http-geoip2 (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-mail (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-http-image-filter (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-stream (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-stream-geoip2 (1.18.0-6ubuntu14.3) …
+Настраивается пакет nginx-core (1.18.0-6ubuntu14.3) …
+ * Upgrading binary nginx                                                                                                       [ OK ]
+Настраивается пакет nginx (1.18.0-6ubuntu14.3) …
+Обрабатываются триггеры для man-db (2.10.2-1) …
+Обрабатываются триггеры для ufw (0.36.1-4build1) …
+root@oksana-VirtualBox:/home/oksana# apt install -y nginx
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Уже установлен пакет nginx самой новой версии (1.18.0-6ubuntu14.3).
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  libflashrom1 libftdi1-2 linux-headers-5.15.0-43 linux-headers-5.15.0-43-generic linux-image-5.15.0-43-generic
+  linux-modules-5.15.0-43-generic linux-modules-extra-5.15.0-43-generic
+Для их удаления используйте «sudo apt autoremove».
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 0 пакетов, и 24 пакетов не обновлено.
+root@oksana-VirtualBox:/home/oksana# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# ll
+итого 80
+drwxr-xr-x   8 root root  4096 Feb 15 15:17 ./
+drwxr-xr-x 131 root root 12288 Feb 15 15:17 ../
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 conf.d/
+-rw-r--r--   1 root root  1125 Jul 27  2022 fastcgi.conf
+-rw-r--r--   1 root root  1055 Jul 27  2022 fastcgi_params
+-rw-r--r--   1 root root  2837 Jul 27  2022 koi-utf
+-rw-r--r--   1 root root  2223 Jul 27  2022 koi-win
+-rw-r--r--   1 root root  3957 Aug  2  2022 mime.types
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 modules-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 modules-enabled/
+-rw-r--r--   1 root root  1447 Jul 27  2022 nginx.conf
+-rw-r--r--   1 root root   180 Jul 27  2022 proxy_params
+-rw-r--r--   1 root root   636 Jul 27  2022 scgi_params
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-enabled/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 snippets/
+-rw-r--r--   1 root root   664 Jul 27  2022 uwsgi_params
+-rw-r--r--   1 root root  3071 Jul 27  2022 win-utf
+root@oksana-VirtualBox:/etc/nginx# apt remove nginx
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  libflashrom1 libftdi1-2 libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail
+  libnginx-mod-stream libnginx-mod-stream-geoip2 linux-headers-5.15.0-43 linux-headers-5.15.0-43-generic
+  linux-image-5.15.0-43-generic linux-modules-5.15.0-43-generic linux-modules-extra-5.15.0-43-generic nginx-common nginx-core
+Для их удаления используйте «sudo apt autoremove».
+Следующие пакеты будут УДАЛЕНЫ:
+  nginx
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 1 пакетов, и 24 пакетов не обновлено.
+После данной операции объём занятого дискового пространства уменьшится на 50.2 kB.
+Хотите продолжить? [Д/н] y
+Прервано.
+root@oksana-VirtualBox:/etc/nginx# apt remove nginx
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  libflashrom1 libftdi1-2 libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail
+  libnginx-mod-stream libnginx-mod-stream-geoip2 linux-headers-5.15.0-43 linux-headers-5.15.0-43-generic
+  linux-image-5.15.0-43-generic linux-modules-5.15.0-43-generic linux-modules-extra-5.15.0-43-generic nginx-common nginx-core
+Для их удаления используйте «sudo apt autoremove».
+Следующие пакеты будут УДАЛЕНЫ:
+  nginx
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 1 пакетов, и 24 пакетов не обновлено.
+После данной операции объём занятого дискового пространства уменьшится на 50.2 kB.
+Хотите продолжить? [Д/н] y
+(Чтение базы данных … на данный момент установлен 221101 файл и каталог.)
+Удаляется nginx (1.18.0-6ubuntu14.3) …
+root@oksana-VirtualBox:/etc/nginx# ll
+итого 80
+drwxr-xr-x   8 root root  4096 Feb 15 15:17 ./
+drwxr-xr-x 131 root root 12288 Feb 15 15:17 ../
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 conf.d/
+-rw-r--r--   1 root root  1125 Jul 27  2022 fastcgi.conf
+-rw-r--r--   1 root root  1055 Jul 27  2022 fastcgi_params
+-rw-r--r--   1 root root  2837 Jul 27  2022 koi-utf
+-rw-r--r--   1 root root  2223 Jul 27  2022 koi-win
+-rw-r--r--   1 root root  3957 Aug  2  2022 mime.types
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 modules-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 modules-enabled/
+-rw-r--r--   1 root root  1447 Jul 27  2022 nginx.conf
+-rw-r--r--   1 root root   180 Jul 27  2022 proxy_params
+-rw-r--r--   1 root root   636 Jul 27  2022 scgi_params
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-enabled/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 snippets/
+-rw-r--r--   1 root root   664 Jul 27  2022 uwsgi_params
+-rw-r--r--   1 root root  3071 Jul 27  2022 win-utf
+root@oksana-VirtualBox:/etc/nginx# apt autoremove
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Следующие пакеты будут УДАЛЕНЫ:
+  libflashrom1 libftdi1-2 libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail
+  libnginx-mod-stream libnginx-mod-stream-geoip2 linux-headers-5.15.0-43 linux-headers-5.15.0-43-generic
+  linux-image-5.15.0-43-generic linux-modules-5.15.0-43-generic linux-modules-extra-5.15.0-43-generic nginx-common nginx-core
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 15 пакетов, и 24 пакетов не обновлено.
+После данной операции объём занятого дискового пространства уменьшится на 565 MB.
+Хотите продолжить? [Д/н] y
+(Чтение базы данных … на данный момент установлено 221098 файлов и каталогов.)
+Удаляется libflashrom1:amd64 (1.2-5build1) …
+Удаляется libftdi1-2:amd64 (1.5-5build3) …
+Удаляется nginx-core (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-http-geoip2 (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-http-image-filter (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-http-xslt-filter (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-mail (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-stream-geoip2 (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-stream (1.18.0-6ubuntu14.3) …
+Удаляется linux-headers-5.15.0-43-generic (5.15.0-43.46) …
+Удаляется linux-headers-5.15.0-43 (5.15.0-43.46) …
+Удаляется linux-modules-extra-5.15.0-43-generic (5.15.0-43.46) …
+Удаляется nginx-common (1.18.0-6ubuntu14.3) …
+Удаляется linux-image-5.15.0-43-generic (5.15.0-43.46) …
+/etc/kernel/postrm.d/initramfs-tools:
+update-initramfs: Deleting /boot/initrd.img-5.15.0-43-generic
+^[[B^[[B^[[Broot@oksana-VirtualBox:/etc/nginx# ll
+итого 72
+drwxr-xr-x   6 root root  4096 Feb 15 15:35 ./untu3.1) …
+drwxr-xr-x 131 root root 12288 Feb 15 15:35 ../
+-rw-r--r--   1 root root  1125 Jul 27  2022 fastcgi.conf
+-rw-r--r--   1 root root  1055 Jul 27  2022 fastcgi_params
+-rw-r--r--   1 root root  2837 Jul 27  2022 koi-utf
+-rw-r--r--   1 root root  2223 Jul 27  2022 koi-winric
+-rw-r--r--   1 root root  3957 Aug  2  2022 mime.types
+drwxr-xr-x   2 root root  4096 Feb 15 15:34 modules-enabled/
+-rw-r--r--   1 root root  1447 Jul 27  2022 nginx.confr bootable partitions.
+-rw-r--r--   1 root root   180 Jul 27  2022 proxy_paramsguration.
+-rw-r--r--   1 root root   636 Jul 27  2022 scgi_params
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-enabled/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 snippets/
+-rw-r--r--   1 root root   664 Jul 27  2022 uwsgi_params
+-rw-r--r--   1 root root  3071 Jul 27  2022 win-utf
+root@oksana-VirtualBox:/etc/nginx# apt install nginx
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Будут установлены следующие дополнительные пакеты:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx-common nginx-core
+Предлагаемые пакеты:
+  fcgiwrap nginx-doc
+Следующие НОВЫЕ пакеты будут установлены:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx nginx-common nginx-core
+Обновлено 0 пакетов, установлено 9 новых пакетов, для удаления отмечено 0 пакетов, и 24 пакетов не обновлено.
+Необходимо скачать 696 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 2,395 kB.
+Хотите продолжить? [Д/н] y
+Прервано.
+root@oksana-VirtualBox:/etc/nginx# apt install nginx
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Будут установлены следующие дополнительные пакеты:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx-common nginx-core
+Предлагаемые пакеты:
+  fcgiwrap nginx-doc
+Следующие НОВЫЕ пакеты будут установлены:
+  libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+  libnginx-mod-stream-geoip2 nginx nginx-common nginx-core
+Обновлено 0 пакетов, установлено 9 новых пакетов, для удаления отмечено 0 пакетов, и 24 пакетов не обновлено.
+Необходимо скачать 696 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 2,395 kB.
+Хотите продолжить? [Д/н] y
+Пол:1 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 nginx-common all 1.18.0-6ubuntu14.3 [40.0 kB]
+Пол:2 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-http-geoip2 amd64 1.18.0-6ubuntu14.3 [11.9 kB]
+Пол:3 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-http-image-filter amd64 1.18.0-6ubuntu14.3 [15.4 kB]
+Пол:4 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-http-xslt-filter amd64 1.18.0-6ubuntu14.3 [13.7 kB]
+Пол:5 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-mail amd64 1.18.0-6ubuntu14.3 [45.7 kB]
+Пол:6 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-stream amd64 1.18.0-6ubuntu14.3 [72.8 kB]
+Пол:7 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnginx-mod-stream-geoip2 amd64 1.18.0-6ubuntu14.3 [10.1 kB]
+Пол:8 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 nginx-core amd64 1.18.0-6ubuntu14.3 [482 kB]
+Пол:9 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 nginx amd64 1.18.0-6ubuntu14.3 [3,882 B]
+Получено 696 kB за 4с (170 kB/s)
+Предварительная настройка пакетов …
+Выбор ранее не выбранного пакета nginx-common.
+(Чтение базы данных … на данный момент установлено 185553 файла и каталога.)
+Подготовка к распаковке …/0-nginx-common_1.18.0-6ubuntu14.3_all.deb …
+Распаковывается nginx-common (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-http-geoip2.
+Подготовка к распаковке …/1-libnginx-mod-http-geoip2_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-http-geoip2 (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-http-image-filter.
+Подготовка к распаковке …/2-libnginx-mod-http-image-filter_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-http-image-filter (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-http-xslt-filter.
+Подготовка к распаковке …/3-libnginx-mod-http-xslt-filter_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-http-xslt-filter (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-mail.
+Подготовка к распаковке …/4-libnginx-mod-mail_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-mail (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-stream.
+Подготовка к распаковке …/5-libnginx-mod-stream_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-stream (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета libnginx-mod-stream-geoip2.
+Подготовка к распаковке …/6-libnginx-mod-stream-geoip2_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается libnginx-mod-stream-geoip2 (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета nginx-core.
+Подготовка к распаковке …/7-nginx-core_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается nginx-core (1.18.0-6ubuntu14.3) …
+Выбор ранее не выбранного пакета nginx.
+Подготовка к распаковке …/8-nginx_1.18.0-6ubuntu14.3_amd64.deb …
+Распаковывается nginx (1.18.0-6ubuntu14.3) …
+Настраивается пакет nginx-common (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-http-xslt-filter (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-http-geoip2 (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-mail (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-http-image-filter (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-stream (1.18.0-6ubuntu14.3) …
+Настраивается пакет libnginx-mod-stream-geoip2 (1.18.0-6ubuntu14.3) …
+Настраивается пакет nginx-core (1.18.0-6ubuntu14.3) …
+ * Upgrading binary nginx                                                                                                       [ OK ]
+Настраивается пакет nginx (1.18.0-6ubuntu14.3) …
+Обрабатываются триггеры для man-db (2.10.2-1) …
+Обрабатываются триггеры для ufw (0.36.1-4build1) …
+root@oksana-VirtualBox:/etc/nginx# cd ..
+(Чтение базы данных … на данный момент установлено 185615 файлов и каталогов.)
+Удаляется nginx (1.18.0-6ubuntu14.3) …
+root@oksana-VirtualBox:/etc# cd nginx
+root@oksana-VirtualBox:/etc/nginx# ll
+итого 80
+drwxr-xr-x   8 root root  4096 Feb 15 15:43 ./
+drwxr-xr-x 131 root root 12288 Feb 15 15:35 ../
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 conf.d/льше не требуются:
+-rw-r--r--   1 root root  1125 Jul 27  2022 fastcgi.confr libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream
+-rw-r--r--   1 root root  1055 Jul 27  2022 fastcgi_params
+-rw-r--r--   1 root root  2837 Jul 27  2022 koi-utf
+-rw-r--r--   1 root root  2223 Jul 27  2022 koi-win
+-rw-r--r--   1 root root  3957 Aug  2  2022 mime.types
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 modules-available/ отмечено 1 пакетов, и 24 пакетов не обновлено.
+drwxr-xr-x   2 root root  4096 Feb 15 15:43 modules-enabled/уменьшится на 50.2 kB.
+-rw-r--r--   1 root root  1447 Jul 27  2022 nginx.conf
+-rw-r--r--   1 root root   180 Jul 27  2022 proxy_params
+-rw-r--r--   1 root root   636 Jul 27  2022 scgi_params
+drwxr-xr-x   2 root root  4096 Feb 15 15:43 sites-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-enabled/
+drwxr-xr-x   2 root root  4096 Feb 15 15:43 snippets/
+-rw-r--r--   1 root root   664 Jul 27  2022 uwsgi_params
+-rw-r--r--   1 root root  3071 Jul 27  2022 win-utf
+root@oksana-VirtualBox:/etc/nginx# apt purge Libnginx-mod-http-geoip2 Libnginx-mod-http-image--filter Libnginx-mod-mail Libnginx-mod-stream-geoip2 nginx-common nginx-core
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+E: Невозможно найти пакет Libnginx-mod-http-geoip2
+E: Невозможно найти пакет Libnginx-mod-http-image--filter
+E: Невозможно найти пакет Libnginx-mod-mail
+E: Невозможно найти пакет Libnginx-mod-stream-geoip2
+root@oksana-VirtualBox:/etc/nginx# apt purge libnginx-mod-http-geoip2 libnginx-mod-http-image--filter libnginx-mod-mail libnginx-mod-st
+ream-geoip2 nginx-common nginx-core
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+E: Невозможно найти пакет libnginx-mod-http-image--filter
+root@oksana-VirtualBox:/etc/nginx# apt purge libnginx-mod-http-image-filter
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  libnginx-mod-http-geoip2 libnginx-mod-http-xslt-filter libnginx-mod-mail libnginx-mod-stream libnginx-mod-stream-geoip2
+  nginx-common
+Для их удаления используйте «sudo apt autoremove».
+Следующие пакеты будут УДАЛЕНЫ:
+  libnginx-mod-http-image-filter* nginx-core*
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 2 пакетов, и 24 пакетов не обновлено.
+После данной операции объём занятого дискового пространства уменьшится на 1,393 kB.
+Хотите продолжить? [Д/н] y
+(Чтение базы данных … на данный момент установлено 185612 файлов и каталогов.)
+Удаляется nginx-core (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-http-image-filter (1.18.0-6ubuntu14.3) …
+Обрабатываются триггеры для man-db (2.10.2-1) …
+(Чтение базы данных … на данный момент установлено 185602 файла и каталога.)
+Вычищаются файлы настройки пакета libnginx-mod-http-image-filter (1.18.0-6ubuntu14.3) …
+root@oksana-VirtualBox:/etc/nginx# cd ..
+root@oksana-VirtualBox:/etc# cd nginx
+root@oksana-VirtualBox:/etc/nginx# ll
+итого 80
+drwxr-xr-x   8 root root  4096 Feb 15 15:43 ./
+drwxr-xr-x 131 root root 12288 Feb 15 15:35 ../
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 conf.d/
+-rw-r--r--   1 root root  1125 Jul 27  2022 fastcgi.conf
+-rw-r--r--   1 root root  1055 Jul 27  2022 fastcgi_params
+-rw-r--r--   1 root root  2837 Jul 27  2022 koi-utf
+-rw-r--r--   1 root root  2223 Jul 27  2022 koi-win
+-rw-r--r--   1 root root  3957 Aug  2  2022 mime.types
+drwxr-xr-x   2 root root  4096 Nov 10 09:39 modules-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:58 modules-enabled/
+-rw-r--r--   1 root root  1447 Jul 27  2022 nginx.conf
+-rw-r--r--   1 root root   180 Jul 27  2022 proxy_params
+-rw-r--r--   1 root root   636 Jul 27  2022 scgi_params
+drwxr-xr-x   2 root root  4096 Feb 15 15:43 sites-available/
+drwxr-xr-x   2 root root  4096 Feb 15 15:17 sites-enabled/
+drwxr-xr-x   2 root root  4096 Feb 15 15:43 snippets/
+-rw-r--r--   1 root root   664 Jul 27  2022 uwsgi_params
+-rw-r--r--   1 root root  3071 Jul 27  2022 win-utf
+root@oksana-VirtualBox:/etc/nginx# apt purge libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-mail libnginx-mod-str
+eam-geoip2 nginx-common nginx-core
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Пакет «libnginx-mod-http-image-filter» не установлен, поэтому не может быть удалён
+Пакет «nginx-core» не установлен, поэтому не может быть удалён
+Следующие пакеты будут УДАЛЕНЫ:
+  libnginx-mod-http-geoip2* libnginx-mod-http-xslt-filter* libnginx-mod-mail* libnginx-mod-stream* libnginx-mod-stream-geoip2*
+  nginx-common*
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 6 пакетов, и 24 пакетов не обновлено.
+После данной операции объём занятого дискового пространства уменьшится на 952 kB.
+Хотите продолжить? [Д/н] y
+(Чтение базы данных … на данный момент установлено 185602 файла и каталога.)
+Удаляется libnginx-mod-http-geoip2 (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-http-xslt-filter (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-mail (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-stream-geoip2 (1.18.0-6ubuntu14.3) …
+Удаляется libnginx-mod-stream (1.18.0-6ubuntu14.3) …
+Удаляется nginx-common (1.18.0-6ubuntu14.3) …
+(Чтение базы данных … на данный момент установлено 185553 файла и каталога.)
+Вычищаются файлы настройки пакета libnginx-mod-mail (1.18.0-6ubuntu14.3) …
+Вычищаются файлы настройки пакета libnginx-mod-stream (1.18.0-6ubuntu14.3) …
+Вычищаются файлы настройки пакета nginx-common (1.18.0-6ubuntu14.3) …
+dpkg: предупреждение: при удалении nginx-common каталог «/var/www/html» не пуст, поэтому не удалён
+Вычищаются файлы настройки пакета libnginx-mod-http-xslt-filter (1.18.0-6ubuntu14.3) …
+Вычищаются файлы настройки пакета libnginx-mod-http-geoip2 (1.18.0-6ubuntu14.3) …
+Вычищаются файлы настройки пакета libnginx-mod-stream-geoip2 (1.18.0-6ubuntu14.3) …
+Обрабатываются триггеры для ufw (0.36.1-4build1) …
+sh: 0: getcwd() failed: No such file or directory
+root@oksana-VirtualBox:/etc/nginx# ll
+итого 0
+root@oksana-VirtualBox:/etc/nginx# cd ..
+root@oksana-VirtualBox:/etc# cd nginx
+bash: cd: nginx: Нет такого файла или каталога
+root@oksana-VirtualBox:/etc# apt list mc
+Вывод списка… Готово
+mc/jammy,now 3:4.8.27-1 amd64 [установлен]
+root@oksana-VirtualBox:/etc# apt show mc
+Package: mc
+Version: 3:4.8.27-1
+Priority: optional
+Section: universe/utils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Dmitry Smirnov <onlyjob@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 1,574 kB
+Provides: mcedit
+Depends: libc6 (>= 2.34), libext2fs2 (>= 1.37), libglib2.0-0 (>= 2.59.2), libgpm2 (>= 1.20.7), libslang2 (>= 2.2.4), libssh2-1 (>= 1.2.8), mc-data (= 3:4.8.27-1)
+Recommends: mime-support, perl, unzip, sensible-utils
+Suggests: arj, bzip2, catdvi | texlive-binaries, dbview, djvulibre-bin, epub-utils, file, genisoimage, gv, imagemagick, libaspell-dev, links | w3m | lynx, odt2txt, poppler-utils, python, python-boto, python-tz, unar, wimtools, xpdf | pdf-viewer, zip
+Homepage: https://www.midnight-commander.org
+Download-Size: 547 kB
+APT-Manual-Installed: yes
+APT-Sources: http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 Packages
+Description: Midnight Commander - многофункциональный диспетчер файлов
+ GNU Midnight Commander – полноэкранный текстовый файловый менеджер. В нём
+ используется двухпанельный интерфейс и встроенная командная оболочка.
+ Также имеется встроенный редактор с подсветкой синтаксиса и просмотрщик,
+ поддерживающий двоичные файлы. Программа поддерживает виртуальную файловую
+ систему (VFS), что позволяет работать с файлами на удалённых машинах
+ (например, на серверах FTP, SSH) и с файлами внутри архивов, как с
+ обычными файлами.
+
+root@oksana-VirtualBox:/etc#
+root@oksana-VirtualBox:/etc# history
+    1  exit
+    2  ll
+    3  chnod 777 test5/
+    4  chmod 777 test5/
+    5  ll
+    6  chmod 110 test5/
+    7  ll
+    8  chmod 220 test5/
+    9  ll
+   10  useradd arnold
+   11  passwd arnold
+   12  su arnold
+   13  cd
+   14  ll
+   15  adduser bob
+   16  su bob
+   17  ls
+   18  ll
+   19  mkdir 23
+   20  ll
+   21  chown -R bob 23
+   22  ll
+   23  cd
+   24  exit
+   25  groupadd newgroup
+   26  ll
+   27  chown -R oksana:newgroup test5/
+   28  ll
+   29  usermod -aG newgroup oksana
+   30  tile /etc/group
+   31  tail /etc/group
+   32  exit
+   33  ll /bin/bash
+   34  sudo userdel -rf testuser1
+   35  ll
+   36  history
+   37  exit
+   38  sudo useradd -G -m -s /home testuser5
+   39  sudo useradd -G -s /home testuser5
+   40  sudo useradd -G /home testuser5
+   41  sudo useradd -G /bin testuser5
+   42  cd /bin
+   43  cd /bash
+   44  sudo useradd -G /bin testuser5
+   45  exit
+   46  apt update
+   47  apt search nginx
+   48  apt list nginx
+   49  apt install nginx
+   50  sudo dbkg --configure -a
+   51  apt install nginx
+   52  sudo dbkg --configure -a
+   53  sudo dpkg --configure -a
+   54  apt install nginx
+   55  apt install -y nginx
+   56  cd /etc/nginx
+   57  ll
+   58  apt remove nginx
+   59  ll
+   60  apt autoremove
+   61  ll
+   62  apt install nginx
+   63  cd ..
+   64  apt purge nginx
+   65  cd nginx
+   66  ll
+   67  apt purge Libnginx-mod-http-geoip2 Libnginx-mod-http-image--filter Libnginx-mod-mail Libnginx-mod-stream-geoip2 nginx-common nginx-core
+   68  apt purge libnginx-mod-http-geoip2 libnginx-mod-http-image--filter libnginx-mod-mail libnginx-mod-stream-geoip2 nginx-common nginx-core
+   69  apt purge libnginx-mod-http-image-filter
+   70  cd ..
+   71  cd nginx
+   72  ll
+   73  apt purge libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-mail libnginx-mod-stream-geoip2 nginx-common nginx-core
+   74  ll
+   75  cd ..
+   76  cd nginx
+   77  apt list mc
+   78  apt show mc
+   79  history
+root@oksana-VirtualBox:/etc#
+
+
+https://www.virtualbox.org переходим на сайт, потренируемся с нашими пакетами
+https://www.virtualbox.org/wiki/Linux_Downloads
+•	 Oracle Linux 9 / Red Hat Enterprise Linux 9
+•	 Oracle Linux 8 / Red Hat Enterprise Linux 8
+•	 Oracle Linux 7 / Red Hat Enterprise Linux 7 / CentOS 7
+•	 Ubuntu 22.04 наш случай, копируем ссылку и вставляем себе в терминал
+•	 Ubuntu 20.04
+•	 Ubuntu 18.04 / 18.10 / 19.04
+•	 Debian 11
+•	 Debian 10
+•	 openSUSE 15.3 / 15.4
+•	 Fedora 36
+•	 Fedora 35
+•	 All distributions (built on EL6 and therefore not requiring recent system libraries)
+root@oksana-VirtualBox:~# wget https://download.virtualbox.org/virtualbox/6.1.36/virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb мы получили файл
+root@oksana-VirtualBox:~# dpkg -i virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb устанавливаем пакет
+у нас обнаружены зависимости, говорит о том, что у нас есть пакет, которые мы не можем разрешить, потому что эта утилита просто не умеет это делать, значит мы не можем установить пакет и список этих зависимостей мы здесь видим (это библиотеки, которые нужны)
+dpkg: зависимости пакетов не позволяют настроить пакет virtualbox-6.1:
+ virtualbox-6.1 зависит от libqt5core5a (>= 5.15.1), однако:
+  Пакет libqt5core5a не установлен.
+ virtualbox-6.1 зависит от libqt5gui5 (>= 5.14.1) | libqt5gui5-gles (>= 5.14.1), однако:
+  Пакет libqt5gui5 не установлен.
+  Пакет libqt5gui5-gles не установлен.
+ virtualbox-6.1 зависит от libqt5opengl5 (>= 5.0.2), однако:
+  Пакет libqt5opengl5 не установлен.
+ virtualbox-6.1 зависит от libqt5printsupport5 (>= 5.0.2), однако:
+  Пакет libqt5printsupport5 не установлен.
+ virtualbox-6.1 зависит от libqt5widgets5 (>= 5.15.1), однако:
+  Пакет libqt5widgets5 не установлен.
+ virtualbox-6.1 зависит от libqt5x11extras5 (>= 5.6.0), однако:
+  Пакет libqt5x11extras5 не установлен.
+ virtualbox-6.1 зависит от libsdl1.2debian (>= 1.2.11), однако:
+  Пакет libsdl1.2debian не установлен.
+Так как пакет адаптирован к нашей системе, это значит, что все эти пакеты есть в нашей системе и нам нужно выполнить одну команду
+root@oksana-VirtualBox:~# apt -f install эта команда исправляет сломанные пакеты, тот пакет который мы поставили сломанный и эта команда сейчас все за нас решит, сейчас все будет установлено
+Добавляется группа «vboxusers» (GID 137) у нас создается группа
+Когда появится новый пакет обновления виртуал бокс, нужно будет также обновить
+Сейчас перейдем на сайт
+https://www.virtualbox.org/wiki/Linux_Downloads
+и посмотрим что же еще мы можем корректно установить, если прокрутить страницу мы увидим инструкцию,  что нам сделать чтобы она работала
+мы берем строчку mdist, копируем ee себе в буфер
+root@oksana-VirtualBox:~# cd /etc/apt
+root@oksana-VirtualBox:/etc/apt# ll
+root@oksana-VirtualBox:/etc/apt# cd sources.list.d/
+root@oksana-VirtualBox:/etc/apt/sources.list.d# ll этот файл пока пустой, именно здесь новый файл, в котором будет прописан наш репозитрий 
+root@oksana-VirtualBox:/etc/apt/sources.list.d# cat > vb.list вставляем то, что было в буфере нашу строку с сайта и закрываем файл
+deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian <mydist> contrib
+выходим ctrl + d
+root@oksana-VirtualBox:/etc/apt/sources.list.d# nano vb.list
+подставляем вместо mydist  нашу  jammy
+ctrl + o сохраняем
+enter
+ctrl + x
+мы прописали наш репозиторий
+root@oksana-VirtualBox:/etc/apt/sources.list.d# apt update хотим увидеть списки наших пакетов, которые там есть
+у нас появляются ошибки подписи не проверены, не доступен ключ, репозиторий не подписан, он отключен, мы его прописали, но работать он не будет, все произошло, потому что мы не дошли до конца инструкции
+идем на сайт и читаем инструкцию
+выполнить следующую команду по установке ключа
+копируем третью ссылку ключ и вставляем в терминал, здесь конечно хорошо до исполнения команды прочитать и осознать для чего вы это делаете
+т.е. проверяйте, то что копируете, выполняем, здесь мы доверяем потому что знаем, что это команда нам скачает ключ одним действием, вторым установит его в систему то что нам нужно
+root@oksana-VirtualBox:/etc/apt/sources.list.d# wget -O- https://www.virtualbox.org/download/oracle_vbox_2016.asc | sudo gpg --dearmor --yes --output /usr/share/keyrings/oracle-virtualbox-2016.gpg
+root@oksana-VirtualBox:/etc/apt/sources.list.d# apt update посмотреть появился ли наш репозиторий или нет
+здесь ошибок нет, мы видим четко дистрибутив от пол.6
+Пол:6 https://download.virtualbox.org/virtualbox/debian jammy/contrib amd64 Packages [1,471 B]
+Значит вертуал бокс работает, будут обновления мы их обновим
+Если не получилось смотрите инструкцию дальше и ищите пакеты которые вам нужно установить.
+Планировщик cron мы можем выставить задачи, которые будут выполняться регулярно, он всегда есть в нашей системе.
+root@oksana-VirtualBox:/etc/apt/sources.list.d# cd /etc
+root@oksana-VirtualBox:/etc# nano crontab
+Открывается файл шел это оболочка, ее можно здесь поменять
+Ниже наше расписание комментарии
+root@oksana-VirtualBox:/etc# cd cron.daily/ идем в директорию
+root@oksana-VirtualBox:/etc/cron.daily# ll набор баш скриптов которые выполняются ежедневно, надо учитывать ограничения, все исполняемые.
+root@oksana-VirtualBox:/etc/cron.daily# cd ../cron.d это директория не для других скриптов которые будут исполняться, а для кусочков расписаний, будут находиться файлы у которых дополнительное расписание
+root@oksana-VirtualBox:/etc/cron.d# nano e2scrub_all открыли расписание, здесь еще две дополнительные задачи, это сделано чтобы не засорять фронтаб основной, свои задачи лучше записывать вот в  такой файл и создавать новые, прописать свои регулярние задачи со скриптами
+root@oksana-VirtualBox:/etc/cron.d# ps afx | grep [c]ron крон у нас запущен мы даже можем найти его процесс , процесс работает видим. КРОН работает прямолинейно, когда запускаем задачу, каждый час задачи могут наслаиваться, сами должны планировать чтобы не было пересечения
+582 ?        Ss     0:00 /usr/sbin/cron -f -P
+root@oksana-VirtualBox:/etc/cron.d# crontab -l посмотрим свой файл расписания, сейчас нет никакого расписания
+root@oksana-VirtualBox:/etc/cron.d# exit выходим 
+из обычного пользователя создадим фронтаб
+oksana@oksana-VirtualBox:~$ crontab -e уходим в редактирование файла
+открылся редактор нано 
+oksana@oksana-VirtualBox:~$ crontab -l открылось тоже самое 
+oksana@oksana-VirtualBox:~$ crontab -r у нас файл отсутствует для других пользователей
+root@oksana-VirtualBox:/etc# cd
+root@oksana-VirtualBox:~# wget https://download.virtualbox.org/viryualbox/6.1.36/virtualbox-6.1_6/1/36-152435~Ubuntu~jammy_amd64.deb
+--2023-02-15 16:23:50--  https://download.virtualbox.org/viryualbox/6.1.36/virtualbox-6.1_6/1/36-152435~Ubuntu~jammy_amd64.deb
+Распознаётся download.virtualbox.org (download.virtualbox.org)… 23.40.124.87
+Подключение к download.virtualbox.org (download.virtualbox.org)|23.40.124.87|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 404 Not Found
+2023-02-15 16:23:53 ОШИБКА 404: Not Found.
+
+root@oksana-VirtualBox:~# wget https://download.virtualbox.org/virtualbox/6.1.36/virtualbox-6.1_6/1/36-152435~Ubuntu~jammy_amd64.deb
+--2023-02-15 16:24:52--  https://download.virtualbox.org/virtualbox/6.1.36/virtualbox-6.1_6/1/36-152435~Ubuntu~jammy_amd64.deb
+Распознаётся download.virtualbox.org (download.virtualbox.org)… 23.40.124.87
+Подключение к download.virtualbox.org (download.virtualbox.org)|23.40.124.87|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 404 Not Found
+2023-02-15 16:24:53 ОШИБКА 404: Not Found.
+
+root@oksana-VirtualBox:~# wget https://download.virtualbox.org/virtualbox/6.1.36/virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb
+--2023-02-15 16:25:44--  https://download.virtualbox.org/virtualbox/6.1.36/virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb
+Распознаётся download.virtualbox.org (download.virtualbox.org)… 23.40.124.87
+Подключение к download.virtualbox.org (download.virtualbox.org)|23.40.124.87|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 200 OK
+Длина: 95831608 (91M) [text/plain]
+Сохранение в: ‘virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb’
+
+virtualbox-6.1_6.1.36-152435~Ubun 100%[============================================================>]  91.39M  1.96MB/s    за 34s
+
+2023-02-15 16:26:18 (2.71 MB/s) - ‘virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb’ сохранён [95831608/95831608]
+
+root@oksana-VirtualBox:~# dpkg -i virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb
+Выбор ранее не выбранного пакета virtualbox-6.1.
+(Чтение базы данных … на данный момент установлено 185527 файлов и каталогов.)
+Подготовка к распаковке virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb …
+Распаковывается virtualbox-6.1 (6.1.36-152435~Ubuntu~jammy) …
+dpkg: зависимости пакетов не позволяют настроить пакет virtualbox-6.1:
+ virtualbox-6.1 зависит от libqt5core5a (>= 5.15.1), однако:
+  Пакет libqt5core5a не установлен.
+ virtualbox-6.1 зависит от libqt5gui5 (>= 5.14.1) | libqt5gui5-gles (>= 5.14.1), однако:
+  Пакет libqt5gui5 не установлен.
+  Пакет libqt5gui5-gles не установлен.
+ virtualbox-6.1 зависит от libqt5opengl5 (>= 5.0.2), однако:
+  Пакет libqt5opengl5 не установлен.
+ virtualbox-6.1 зависит от libqt5printsupport5 (>= 5.0.2), однако:
+  Пакет libqt5printsupport5 не установлен.
+ virtualbox-6.1 зависит от libqt5widgets5 (>= 5.15.1), однако:
+  Пакет libqt5widgets5 не установлен.
+ virtualbox-6.1 зависит от libqt5x11extras5 (>= 5.6.0), однако:
+  Пакет libqt5x11extras5 не установлен.
+ virtualbox-6.1 зависит от libsdl1.2debian (>= 1.2.11), однако:
+  Пакет libsdl1.2debian не установлен.
+
+dpkg: ошибка при обработке пакета virtualbox-6.1 (--install):
+ проблемы зависимостей — оставляем не настроенным
+Обрабатываются триггеры для mailcap (3.70+nmu1ubuntu1) …
+Обрабатываются триггеры для gnome-menus (3.36.0-1ubuntu3) …
+Обрабатываются триггеры для desktop-file-utils (0.26-1ubuntu3) …
+Обрабатываются триггеры для hicolor-icon-theme (0.17-2) …
+Обрабатываются триггеры для shared-mime-info (2.1-2) …
+При обработке следующих пакетов произошли ошибки:
+ virtualbox-6.1
+root@oksana-VirtualBox:~# apt -f install
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Исправление зависимостей… Готово
+Будут установлены следующие дополнительные пакеты:
+  libdouble-conversion3 libmd4c0 libpcre2-16-0 libqt5core5a libqt5dbus5 libqt5gui5 libqt5network5 libqt5opengl5 libqt5printsupport5
+  libqt5svg5 libqt5widgets5 libqt5x11extras5 libsdl1.2debian libxcb-xinerama0 libxcb-xinput0 qt5-gtk-platformtheme
+  qttranslations5-l10n
+Предлагаемые пакеты:
+  qt5-image-formats-plugins qtwayland5
+Следующие НОВЫЕ пакеты будут установлены:
+  libdouble-conversion3 libmd4c0 libpcre2-16-0 libqt5core5a libqt5dbus5 libqt5gui5 libqt5network5 libqt5opengl5 libqt5printsupport5
+  libqt5svg5 libqt5widgets5 libqt5x11extras5 libsdl1.2debian libxcb-xinerama0 libxcb-xinput0 qt5-gtk-platformtheme
+  qttranslations5-l10n
+Обновлено 0 пакетов, установлено 17 новых пакетов, для удаления отмечено 0 пакетов, и 24 пакетов не обновлено.
+Установлено или удалено не до конца 1 пакетов.
+Необходимо скачать 12.4 MB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 49.8 MB.
+Хотите продолжить? [Д/н] y
+Прервано.
+root@oksana-VirtualBox:~# apt -f install
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Исправление зависимостей… Готово
+Будут установлены следующие дополнительные пакеты:
+  libdouble-conversion3 libmd4c0 libpcre2-16-0 libqt5core5a libqt5dbus5 libqt5gui5 libqt5network5 libqt5opengl5 libqt5printsupport5
+  libqt5svg5 libqt5widgets5 libqt5x11extras5 libsdl1.2debian libxcb-xinerama0 libxcb-xinput0 qt5-gtk-platformtheme
+  qttranslations5-l10n
+Предлагаемые пакеты:
+  qt5-image-formats-plugins qtwayland5
+Следующие НОВЫЕ пакеты будут установлены:
+  libdouble-conversion3 libmd4c0 libpcre2-16-0 libqt5core5a libqt5dbus5 libqt5gui5 libqt5network5 libqt5opengl5 libqt5printsupport5
+  libqt5svg5 libqt5widgets5 libqt5x11extras5 libsdl1.2debian libxcb-xinerama0 libxcb-xinput0 qt5-gtk-platformtheme
+  qttranslations5-l10n
+Обновлено 0 пакетов, установлено 17 новых пакетов, для удаления отмечено 0 пакетов, и 24 пакетов не обновлено.
+Установлено или удалено не до конца 1 пакетов.
+Необходимо скачать 12.4 MB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 49.8 MB.
+Хотите продолжить? [Д/н] y
+Пол:1 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 libdouble-conversion3 amd64 3.1.7-4 [39.0 kB]
+Пол:2 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpcre2-16-0 amd64 10.39-3ubuntu0.1 [203 kB]
+Пол:3 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libqt5core5a amd64 5.15.3+dfsg-2ubuntu0.2 [2,006 kB]
+Пол:4 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 libmd4c0 amd64 0.4.8-1 [42.0 kB]
+Пол:5 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libqt5dbus5 amd64 5.15.3+dfsg-2ubuntu0.2 [222 kB]
+Пол:6 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libqt5network5 amd64 5.15.3+dfsg-2ubuntu0.2 [731 kB]
+Пол:7 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libxcb-xinerama0 amd64 1.14-3ubuntu3 [5,414 B]
+Пол:8 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libxcb-xinput0 amd64 1.14-3ubuntu3 [34.3 kB]
+Пол:9 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libqt5gui5 amd64 5.15.3+dfsg-2ubuntu0.2 [3,722 kB]
+Пол:10 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libqt5widgets5 amd64 5.15.3+dfsg-2ubuntu0.2 [2,561 kB]
+Пол:11 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libqt5opengl5 amd64 5.15.3+dfsg-2ubuntu0.2 [153 kB]
+Пол:12 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libqt5printsupport5 amd64 5.15.3+dfsg-2ubuntu0.2 [214 kB]
+Пол:13 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 libqt5x11extras5 amd64 5.15.3-1 [10.9 kB]
+Пол:14 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 libsdl1.2debian amd64 1.2.15+dfsg2-6 [177 kB]
+Пол:15 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 libqt5svg5 amd64 5.15.3-1 [149 kB]
+Пол:16 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 qt5-gtk-platformtheme amd64 5.15.3+dfsg-2ubuntu0.2 [130 kB]
+Пол:17 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 qttranslations5-l10n all 5.15.3-1 [1,983 kB]
+Получено 12.4 MB за 9с (1,380 kB/s)
+Выбор ранее не выбранного пакета libdouble-conversion3:amd64.
+(Чтение базы данных … на данный момент установлено 186285 файлов и каталогов.)
+Подготовка к распаковке …/00-libdouble-conversion3_3.1.7-4_amd64.deb …
+Распаковывается libdouble-conversion3:amd64 (3.1.7-4) …
+Выбор ранее не выбранного пакета libpcre2-16-0:amd64.
+Подготовка к распаковке …/01-libpcre2-16-0_10.39-3ubuntu0.1_amd64.deb …
+Распаковывается libpcre2-16-0:amd64 (10.39-3ubuntu0.1) …
+Выбор ранее не выбранного пакета libqt5core5a:amd64.
+Подготовка к распаковке …/02-libqt5core5a_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается libqt5core5a:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета libmd4c0:amd64.
+Подготовка к распаковке …/03-libmd4c0_0.4.8-1_amd64.deb …
+Распаковывается libmd4c0:amd64 (0.4.8-1) …
+Выбор ранее не выбранного пакета libqt5dbus5:amd64.
+Подготовка к распаковке …/04-libqt5dbus5_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается libqt5dbus5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета libqt5network5:amd64.
+Подготовка к распаковке …/05-libqt5network5_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается libqt5network5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета libxcb-xinerama0:amd64.
+Подготовка к распаковке …/06-libxcb-xinerama0_1.14-3ubuntu3_amd64.deb …
+Распаковывается libxcb-xinerama0:amd64 (1.14-3ubuntu3) …
+Выбор ранее не выбранного пакета libxcb-xinput0:amd64.
+Подготовка к распаковке …/07-libxcb-xinput0_1.14-3ubuntu3_amd64.deb …
+Распаковывается libxcb-xinput0:amd64 (1.14-3ubuntu3) …
+Выбор ранее не выбранного пакета libqt5gui5:amd64.
+Подготовка к распаковке …/08-libqt5gui5_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается libqt5gui5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета libqt5widgets5:amd64.
+Подготовка к распаковке …/09-libqt5widgets5_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается libqt5widgets5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета libqt5opengl5:amd64.
+Подготовка к распаковке …/10-libqt5opengl5_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается libqt5opengl5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета libqt5printsupport5:amd64.
+Подготовка к распаковке …/11-libqt5printsupport5_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается libqt5printsupport5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета libqt5x11extras5:amd64.
+Подготовка к распаковке …/12-libqt5x11extras5_5.15.3-1_amd64.deb …
+Распаковывается libqt5x11extras5:amd64 (5.15.3-1) …
+Выбор ранее не выбранного пакета libsdl1.2debian:amd64.
+Подготовка к распаковке …/13-libsdl1.2debian_1.2.15+dfsg2-6_amd64.deb …
+Распаковывается libsdl1.2debian:amd64 (1.2.15+dfsg2-6) …
+Выбор ранее не выбранного пакета libqt5svg5:amd64.
+Подготовка к распаковке …/14-libqt5svg5_5.15.3-1_amd64.deb …
+Распаковывается libqt5svg5:amd64 (5.15.3-1) …
+Выбор ранее не выбранного пакета qt5-gtk-platformtheme:amd64.
+Подготовка к распаковке …/15-qt5-gtk-platformtheme_5.15.3+dfsg-2ubuntu0.2_amd64.deb …
+Распаковывается qt5-gtk-platformtheme:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Выбор ранее не выбранного пакета qttranslations5-l10n.
+Подготовка к распаковке …/16-qttranslations5-l10n_5.15.3-1_all.deb …
+Распаковывается qttranslations5-l10n (5.15.3-1) …
+Настраивается пакет libdouble-conversion3:amd64 (3.1.7-4) …
+Настраивается пакет libxcb-xinput0:amd64 (1.14-3ubuntu3) …
+Настраивается пакет libpcre2-16-0:amd64 (10.39-3ubuntu0.1) …
+Настраивается пакет libxcb-xinerama0:amd64 (1.14-3ubuntu3) …
+Настраивается пакет qttranslations5-l10n (5.15.3-1) …
+Настраивается пакет libsdl1.2debian:amd64 (1.2.15+dfsg2-6) …
+Настраивается пакет libqt5core5a:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет libqt5dbus5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет libmd4c0:amd64 (0.4.8-1) …
+Настраивается пакет libqt5network5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет libqt5gui5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет libqt5widgets5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет qt5-gtk-platformtheme:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет libqt5printsupport5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет libqt5opengl5:amd64 (5.15.3+dfsg-2ubuntu0.2) …
+Настраивается пакет libqt5x11extras5:amd64 (5.15.3-1) …
+Настраивается пакет libqt5svg5:amd64 (5.15.3-1) …
+Настраивается пакет virtualbox-6.1 (6.1.36-152435~Ubuntu~jammy) …
+Добавляется группа «vboxusers» (GID 137) ...
+Готово.
+Обрабатываются триггеры для libc-bin (2.35-0ubuntu3.1) …
+root@oksana-VirtualBox:~# cd /etc/apt
+root@oksana-VirtualBox:/etc/apt# ll
+итого 44
+drwxr-xr-x   8 root root  4096 Feb  5 22:14 ./
+drwxr-xr-x 131 root root 12288 Feb 15 16:41 ../
+drwxr-xr-x   2 root root  4096 Feb  8 21:10 apt.conf.d/
+drwxr-xr-x   2 root root  4096 Apr  8  2022 auth.conf.d/
+drwxr-xr-x   2 root root  4096 Apr  8  2022 keyrings/
+drwxr-xr-x   2 root root  4096 Apr  8  2022 preferences.d/
+-rw-rw-r--   1 root root  2824 Feb  5 22:14 sources.list
+drwxr-xr-x   2 root root  4096 Apr  8  2022 sources.list.d/
+drwxr-xr-x   2 root root  4096 Aug  9  2022 trusted.gpg.d/
+root@oksana-VirtualBox:/etc/apt# cd sources.list.d/
+root@oksana-VirtualBox:/etc/apt/sources.list.d# ll
+итого 8
+drwxr-xr-x 2 root root 4096 Apr  8  2022 ./
+drwxr-xr-x 8 root root 4096 Feb  5 22:14 ../
+root@oksana-VirtualBox:/etc/apt/sources.list.d# cat > vb.list
+deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian <mydist> contrib
+q
+exit
+root@oksana-VirtualBox:/etc/apt/sources.list.d# cat > vb.list
+deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian <mydist> contrib
+root@oksana-VirtualBox:/etc/apt/sources.list.d# nano vb.list
+root@oksana-VirtualBox:/etc/apt/sources.list.d# apt update
+Пол:1 http://security.ubuntu.com/ubuntu jammy-security InRelease [110 kB]
+Пол:2 https://download.virtualbox.org/virtualbox/debian jammy InRelease [4,428 B]
+Пол:3 http://security.ubuntu.com/ubuntu jammy-security/main amd64 DEP-11 Metadata [41.5 kB]
+Пол:4 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 DEP-11 Metadata [13.3 kB]
+Ошб:2 https://download.virtualbox.org/virtualbox/debian jammy InRelease
+  Следующие подписи не могут быть проверены, так как недоступен открытый ключ: NO_PUBKEY A2F683C52980AECF
+Сущ:5 http://au.archive.ubuntu.com/ubuntu jammy InRelease
+Пол:6 http://au.archive.ubuntu.com/ubuntu jammy-updates InRelease [119 kB]
+Пол:7 http://au.archive.ubuntu.com/ubuntu jammy-backports InRelease [107 kB]
+Пол:8 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [889 kB]
+Пол:9 http://au.archive.ubuntu.com/ubuntu jammy-updates/main i386 Packages [439 kB]
+Пол:10 http://au.archive.ubuntu.com/ubuntu jammy-updates/main Translation-en [195 kB]
+Пол:11 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 DEP-11 Metadata [102 kB]
+Пол:12 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 c-n-f Metadata [13.5 kB]
+Пол:13 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted i386 Packages [27.2 kB]
+Пол:14 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [617 kB]
+Пол:15 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted Translation-en [94.5 kB]
+Пол:16 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 c-n-f Metadata [580 B]
+Пол:17 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe i386 Packages [574 kB]
+Пол:18 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [811 kB]
+Пол:19 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe Translation-en [147 kB]
+Пол:20 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 DEP-11 Metadata [265 kB]
+Пол:21 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 c-n-f Metadata [15.5 kB]
+Пол:22 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse i386 Packages [3,520 B]
+Пол:23 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 Packages [9,696 B]
+Пол:24 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse Translation-en [3,260 B]
+Пол:25 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 DEP-11 Metadata [940 B]
+Пол:26 http://au.archive.ubuntu.com/ubuntu jammy-backports/main amd64 DEP-11 Metadata [7,980 B]
+Пол:27 http://au.archive.ubuntu.com/ubuntu jammy-backports/universe amd64 DEP-11 Metadata [12.4 kB]
+Чтение списков пакетов… Готово
+W: Ошибка GPG: https://download.virtualbox.org/virtualbox/debian jammy InRelease: Следующие подписи не могут быть проверены, так как недоступен открытый ключ: NO_PUBKEY A2F683C52980AECF
+E: Репозиторий «https://download.virtualbox.org/virtualbox/debian jammy InRelease» не подписан.
+N: Обновление из этого репозитория нельзя выполнить безопасным способом, поэтому по умолчанию он отключён.
+N: Информацию о создании репозитория и настройках пользователя смотрите в справочной странице apt-secure(8).
+root@oksana-VirtualBox:/etc/apt/sources.list.d# wget -O- https://www.virtualbox.org/download/oracle_vbox_2016.asc | sudo gpg --dearmor --yes --output /usr/share/keyrings/oracle-virtualbox-2016.gpg
+--2023-02-15 18:14:06--  https://www.virtualbox.org/download/oracle_vbox_2016.asc
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+Распознаётся www.virtualbox.org (www.virtualbox.org)… 137.254.60.32
+Подключение к www.virtualbox.org (www.virtualbox.org)|137.254.60.32|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 200 OK
+Длина: 3157 (3.1K) [text/plain]
+Сохранение в: ‘STDOUT’
+
+-                                 100%[============================================================>]   3.08K  --.-KB/s    за 0s
+
+/2023-02-15 18:14:07 (264 MB/s) - записан в stdout [3157/3157]
+
+root@oksana-VirtualBox:/etc/apt/sources.list.d# apt update
+Сущ:1 http://security.ubuntu.com/ubuntu jammy-security InRelease
+Пол:2 https://download.virtualbox.org/virtualbox/debian jammy InRelease [4,428 B]
+Сущ:3 http://au.archive.ubuntu.com/ubuntu jammy InRelease
+Сущ:4 http://au.archive.ubuntu.com/ubuntu jammy-updates InRelease
+Сущ:5 http://au.archive.ubuntu.com/ubuntu jammy-backports InRelease
+Пол:6 https://download.virtualbox.org/virtualbox/debian jammy/contrib amd64 Packages [1,471 B]
+Получено 5,899 B за 4с (1,665 B/s)
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Может быть обновлено 25 пакетов. Запустите «apt list --upgradable» для их показа.
+root@oksana-VirtualBox:/etc/apt/sources.list.d# cd /etc
+root@oksana-VirtualBox:/etc# nano crontab
+root@oksana-VirtualBox:/etc# cd cron.daily/
+root@oksana-VirtualBox:/etc/cron.daily# ll
+итого 48
+drwxr-xr-x   2 root root  4096 Feb  8 21:11 ./
+drwxr-xr-x 131 root root 12288 Feb 15 18:35 ../
+-rwxr-xr-x   1 root root   311 Oct  9  2021 0anacron*
+-rwxr-xr-x   1 root root   376 Oct 26  2021 apport*
+-rwxr-xr-x   1 root root  1478 Apr  8  2022 apt-compat*
+-rwxr-xr-x   1 root root   384 Nov 19  2019 cracklib-runtime*
+-rwxr-xr-x   1 root root   123 Dec  6  2021 dpkg*
+-rwxr-xr-x   1 root root   377 Jan 24  2022 logrotate*
+-rwxr-xr-x   1 root root  1330 Mar 17  2022 man-db*
+-rw-r--r--   1 root root   102 Mar 23  2022 .placeholder
+root@oksana-VirtualBox:/etc/cron.daily# cd ../cron.d
+root@oksana-VirtualBox:/etc/cron.d# nano e2scrub_all
+root@oksana-VirtualBox:/etc/cron.d# ps afx l grep [c]ron
+ошибка: process ID list syntax error
+
+Использование:
+ ps [опции]
+
+ Попробуйте 'ps --help <simple|list|output|threads|misc|all>'
+  или 'ps --help <s|l|o|t|m|a>'
+ для дополнительной справки.
+
+Для дополнительных подробностей смотрите ps(1).
+
+
+No modification made
+oksana@oksana-VirtualBox:~$ crontab -l
+# Edit this file to introduce tasks to be run by cron.
+# it
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+# ontab: installing new crontab
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').
+#
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+#
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+#
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+#
+# For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+oksana@oksana-VirtualBox:~$ crontab -r
+oksana@oksana-VirtualBox:~$ crontab -l
+no crontab for oksana
+oksana@oksana-VirtualBox:~$
+    1  sudo apt update
+    2  sudo apt install mc
+    3  mc
+    4  sudo apt install openssh-server
+    5  ip a
+    6  systemctl status ssh
+    7  ip a
+    8  sudo apt update
+    9  sudo apt install gcc make perl
+   10  sudo reboot
+   11  sudo usermod -aG vboxsf oksana
+   12  mc
+   13  mc
+   14  exit
+   15  cd /home
+   16  sudo su
+   17  cd
+   18  cd /
+   19  cd ~
+   20  ls -al
+   21  ls -l
+   22  cd /proc
+   23  ls -al
+   24  cat cpuinfo
+   25  cd /d
+   26  cd
+   27  cd /proc
+   28  cd /dev
+   29  ls -al
+   30  cd /run
+   31  ls -al
+   32  ls
+   33  ls -a
+   34  ls -al
+   35  ls --help
+   36  man ls
+   37  pwd
+   38  cd ~/.config
+   39  pwd
+   40  cd
+   41  mkdir test
+   42  ls -al
+   43  mkdir 1/2/3/4/5
+   44  mkdir -p 1/2/3/4/5
+   45  ls -al
+   46  cd 1
+   47  cd 2
+   48  cd 3
+   49  cd 4
+   50  ll
+   51  cd ~/test
+   52  ll
+   53  cat > tstfile
+   54  ll
+   55  cp testfile test 2
+   56  cp testfile test2
+   57  cp tstfile test2
+   58  ll
+   59  cd ..
+   60  ll
+   61  cp test test2
+   62  ll
+   63  cp -r test test2
+   64  ll
+   65  cd test2
+   66  ll
+   67  cd
+   68  mv test test 3
+   69  ll
+   70  mv test test3
+   71  ll
+   72  cd test2
+   73  ll
+   74  rm test2
+   75  ll
+   76  cd
+   77  rm -rf test2
+   78  ll
+   79  rm -rf /home/oksana/test2^C
+   80  cd test3/
+   81  ll
+   82  touch testt
+   83  ll
+   84  cat tstfile test2 > test_all
+   85  ll
+   86  cat test_all
+   87  cd /
+   88  ll
+   89  cd /home/oksana
+   90  cd /
+   91  cd home
+   92  cd oksana
+   93  pwd
+   94  cd /home/oksana
+   95  pwd
+   96  cd ~
+   97  cd ..
+   98  cd ../..
+   99  cd
+  100  ls -al
+  101  cd
+  102  ll
+  103  cat ./.bash_logout
+  104  cat .bash_logout
+  105  cd test3/
+  106  ll
+  107  ln test2 test_ln
+  108  ll
+  109  ls -ali
+  110  cat >>test_ln
+  111  ll
+  112  ln -s test2 test_lns
+  113  ll
+  114  ls -ali
+  115  ln -s /home/oksana/test3/test2 test_lns_abs
+  116  ln -s /homeall
+  117  ll
+  118  ln -s /home/oksana/test3/test2 test_lns_abs
+  119  ll
+  120  mv test_lns ..
+  121  ll
+  122  cd ..
+  123  ll
+  124  mv test_lns test3/
+  125  cd test3
+  126  ll
+  127  mv homeall test3/
+  128  all
+  129  ll
+  130  ln -s test3 test_ln_dir
+  131  jj
+  132  ll
+  133  vim
+  134  cd test3
+  135  vim test2
+  136  ll
+  137  vim test2
+  138  vimtutor
+  139  nano test2
+  140  ll
+  141  mcedit test2
+  142  less test2
+  143  more test2
+  144  more /var/log/syslog
+  145  h
+  146  head .bashrc
+  147  cd
+  148  head .bashrc
+  149  head -n 3 .bashrc
+  150  tail -n 3 .bashrc
+  151  tail -f /var/log/auth.log
+  152  ./homeall
+  153  ./test2
+  154  ln -s test2 test_lns
+  155  ll
+  156  rm test_lns/test2
+  157  rm test2/test_lns
+  158  cd test3
+  159  ln -s test2 test_lns
+  160  ln -s test2 test1_lns
+  161  ll
+  162  ls -ali
+  163  ln -s /home/oksana/test3/test2 test1_lns_abs
+  164  ll
+  165  mv test1_lns
+  166  mv test1_lns ..
+  167  ll
+  168  cd ..
+  169  ll
+  170  mv test1_lns test3/
+  171  mv test_lns test3/
+  172  cd test3
+  173  ll
+  174  cd ..
+  175  cd test2
+  176  cd /homeall
+  177  cd homeall
+  178  cd test3
+  179  ll
+  180  cat >> test_lns
+  181  cat >> test1_lns
+  182  sudo cat >> test_lns
+  183  cd ..
+  184  mc
+  185  cd test3
+  186  cat >> test_lns
+  187  mc
+  188  vim
+  189  cd ..
+  190  ls
+  191  cd ~
+  192  cd
+  193  cd snap/
+  194  ll
+  195  cd ..
+  196  ls
+  197  cd ~
+  198  mkdir mac
+  199  ls
+  200  cd mac
+  201  cd ..
+  202  sudo su
+  203  ll
+  204  id oksana
+  205  groupadd newgroup
+  206  sudo su
+  207  touch file{1..2}
+  208  ll
+  209  chmod 664 file1
+  210  chmod 600 file2
+  211  ll
+  212  chmod u-rwx,g-rwx,o-rwx file1 file2
+  213  chmod u+rw,g+rw,o+r file1
+  214  chmod u+rw file2
+  215  sudo useradd -ou 0 -g 0 new_admin
+  216  ll
+  217  history
+  218  sudo su
+  219  crontab -e
+  220  crontab -l
+  221  crontab -r
+  222  crontab -l
+  223  history
+oksana@oksana-VirtualBox:~$
+
+
+
+Семинар
+oksana@oksana-VirtualBox:~$ sudo apt autoremove
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+[sudo] пароль для oksana:
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 0 пакетов, и 25 пакетов не обновлено.
+oksana@oksana-VirtualBox:~$ sudo apt update
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+Пол:1 http://security.ubuntu.com/ubuntu jammy-security InRelease [110 kB]
+Сущ:2 https://download.virtualbox.org/virtualbox/debian jammy InRelease
+Пол:3 http://security.ubuntu.com/ubuntu jammy-security/main i386 Packages [256 kB]
+Пол:4 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [637 kB]
+Пол:5 http://security.ubuntu.com/ubuntu jammy-security/main Translation-en [133 kB]
+Пол:6 http://security.ubuntu.com/ubuntu jammy-security/restricted amd64 Packages [575 kB]
+Сущ:7 http://au.archive.ubuntu.com/ubuntu jammy InRelease
+Пол:8 http://au.archive.ubuntu.com/ubuntu jammy-updates InRelease [119 kB]
+Пол:9 http://security.ubuntu.com/ubuntu jammy-security/restricted Translation-en [87,9 kB]
+Пол:10 http://au.archive.ubuntu.com/ubuntu jammy-backports InRelease [107 kB]
+Пол:11 http://au.archive.ubuntu.com/ubuntu jammy-updates/main i386 Packages [439 kB]
+Пол:12 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [889 kB]
+Пол:13 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 DEP-11 Metadata [102 kB]
+Пол:14 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted i386 Packages [27,2 kB]
+Пол:15 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [617 kB]
+Пол:16 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe i386 Packages [574 kB]
+Пол:17 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [811 kB]
+Пол:18 http://au.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 DEP-11 Metadata [265 kB]
+Пол:19 http://au.archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 DEP-11 Metadata [940 B]
+Пол:20 http://au.archive.ubuntu.com/ubuntu jammy-backports/main amd64 DEP-11 Metadata [7 960 B]
+Пол:21 http://au.archive.ubuntu.com/ubuntu jammy-backports/universe amd64 DEP-11 Metadata [12,5 kB]
+Получено 5 769 kB за 12с (490 kB/s)
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Может быть обновлено 25 пакетов. Запустите «apt list --upgradable» для их показа.
+oksana@oksana-VirtualBox:~$ sudo apt upgrade
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово
+Расчёт обновлений… Готово
+Следующий пакет устанавливался автоматически и больше не требуется:
+  libllvm13
+Для его удаления используйте «sudo apt autoremove».
+Следующие НОВЫЕ пакеты будут установлены:
+  libllvm15
+Следующие пакеты будут оставлены в неизменном виде:
+  gnome-remote-desktop python3-software-properties software-properties-common software-properties-gtk ubuntu-advantage-tools
+  update-notifier update-notifier-common
+Следующие пакеты будут обновлены:
+  alsa-ucm-conf firmware-sof-signed fonts-noto-color-emoji gir1.2-javascriptcoregtk-4.0 gir1.2-webkit2-4.0 gnome-initial-setup less
+  libegl-mesa0 libgbm1 libgl1-mesa-dri libglapi-mesa libglx-mesa0 libjavascriptcoregtk-4.0-18 libwebkit2gtk-4.0-37 libxatracker2
+  linux-firmware mesa-vulkan-drivers virtualbox-6.1
+Обновлено 18 пакетов, установлено 1 новых пакетов, для удаления отмечено 0 пакетов, и 7 пакетов не обновлено.
+5 standard security updates
+Необходимо скачать 421 MB/421 MB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 168 MB.
+Хотите продолжить? [Д/н] y
+Пол:1 https://download.virtualbox.org/virtualbox/debian jammy/contrib amd64 virtualbox-6.1 amd64 6.1.42-155177~Ubuntu~jammy [96,1 MB]
+Пол:2 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 alsa-ucm-conf all 1.2.6.3-1ubuntu1.4 [41,6 kB]
+Пол:3 http://au.archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 firmware-sof-signed all 2.0-1ubuntu4.1 [820 kB]
+(Чтение базы данных … на данный момент установлено 186790 файлов и каталогов.)color-emoji all 2.038-0ubuntu1 [9 755 kB]
+Подготовка к распаковке …/00-virtualbox-6.1_6.1.42-155177~Ubuntu~jammy_amd64.deb …
+
+Распаковывается virtualbox-6.1 (6.1.42-155177~Ubuntu~jammy) на замену (6.1.36-152435~Ubuntu~jammy) …...............................]
+Подготовка к распаковке …/01-less_590-1ubuntu0.22.04.1_amd64.deb … gir1.2-javascriptcoregtk-4.0 amd64 2.38.4-0ubuntu0.22.04.1 [31,9 kB]
+Распаковывается less (590-1ubuntu0.22.04.1) на замену (590-1build1) …bwebkit2gtk-4.0-37 amd64 2.38.4-0ubuntu0.22.04.1 [18,7 MB]
+Подготовка к распаковке …/02-alsa-ucm-conf_1.2.6.3-1ubuntu1.4_all.deb …avascriptcoregtk-4.0-18 amd64 2.38.4-0ubuntu0.22.04.1 [6 968 kB]
+Распаковывается alsa-ucm-conf (1.2.6.3-1ubuntu1.4) на замену (1.2.6.3-1ubuntu1.3) …tup amd64 42.0.1-1ubuntu2.2 [993 kB]
+Подготовка к распаковке …/03-firmware-sof-signed_2.0-1ubuntu4.1_all.deb …l-mesa0 amd64 22.2.5-0ubuntu0.1~22.04.1 [111 kB]
+Распаковывается firmware-sof-signed (2.0-1ubuntu4.1) на замену (2.0-1ubuntu4) …64 22.2.5-0ubuntu0.1~22.04.1 [33,0 kB]
+Подготовка к распаковке …/04-fonts-noto-color-emoji_2.038-0ubuntu1_all.deb …5 amd64 1:15.0.6-3~ubuntu0.22.04.2 [25,4 MB]
+Распаковывается fonts-noto-color-emoji (2.038-0ubuntu1) на замену (2.034-1) …sa-dri amd64 22.2.5-0ubuntu0.1~22.04.1 [7 511 kB]
+Подготовка к распаковке …/05-gir1.2-webkit2-4.0_2.38.4-0ubuntu0.22.04.1_amd64.deb …d64 22.2.5-0ubuntu0.1~22.04.1 [158 kB]
+Распаковывается gir1.2-webkit2-4.0:amd64 (2.38.4-0ubuntu0.22.04.1) на замену (2.38.3-0ubuntu0.22.04.1) …1~22.04.1 [35,3 kB]
+Подготовка к распаковке …/06-gir1.2-javascriptcoregtk-4.0_2.38.4-0ubuntu0.22.04.1_amd64.deb …5-0ubuntu0.1~22.04.1 [1 913 kB]
+Распаковывается gir1.2-javascriptcoregtk-4.0:amd64 (2.38.4-0ubuntu0.22.04.1) на замену (2.38.3-0ubuntu0.22.04.1) …u3.10 [247 MB]
+Подготовка к распаковке …/07-libwebkit2gtk-4.0-37_2.38.4-0ubuntu0.22.04.1_amd64.deb …l 20220329.git681281e4-0ubuntu3.10
+Распаковывается libwebkit2gtk-4.0-37:amd64 (2.38.4-0ubuntu0.22.04.1) на замену (2.38.3-0ubuntu0.22.04.1) …tu0.1~22.04.1 [5 155 kB]
+Подготовка к распаковке …/08-libjavascriptcoregtk-4.0-18_2.38.4-0ubuntu0.22.04.1_amd64.deb …329.git681281e4-0ubuntu3.10 [247 MB]
+Распаковывается libjavascriptcoregtk-4.0-18:amd64 (2.38.4-0ubuntu0.22.04.1) на замену (2.38.3-0ubuntu0.22.04.1) …
+Подготовка к распаковке …/09-gnome-initial-setup_42.0.1-1ubuntu2.2_amd64.deb …
+Распаковывается gnome-initial-setup (42.0.1-1ubuntu2.2) на замену (42.0.1-1ubuntu2) …
+Подготовка к распаковке …/10-libegl-mesa0_22.2.5-0ubuntu0.1~22.04.1_amd64.deb …
+Распаковывается libegl-mesa0:amd64 (22.2.5-0ubuntu0.1~22.04.1) на замену (22.0.5-0ubuntu0.1) …
+Подготовка к распаковке …/11-libgbm1_22.2.5-0ubuntu0.1~22.04.1_amd64.deb …
+Распаковывается libgbm1:amd64 (22.2.5-0ubuntu0.1~22.04.1) на замену (22.0.5-0ubuntu0.1) …
+Выбор ранее не выбранного пакета libllvm15:amd64.
+Подготовка к распаковке …/12-libllvm15_1%3a15.0.6-3~ubuntu0.22.04.2_amd64.deb …
+Распаковывается libllvm15:amd64 (1:15.0.6-3~ubuntu0.22.04.2) …
+Подготовка к распаковке …/13-libgl1-mesa-dri_22.2.5-0ubuntu0.1~22.04.1_amd64.deb …
+Распаковывается libgl1-mesa-dri:amd64 (22.2.5-0ubuntu0.1~22.04.1) на замену (22.0.5-0ubuntu0.1) …
+Подготовка к распаковке …/14-libglx-mesa0_22.2.5-0ubuntu0.1~22.04.1_amd64.deb …
+Распаковывается libglx-mesa0:amd64 (22.2.5-0ubuntu0.1~22.04.1) на замену (22.0.5-0ubuntu0.1) …
+Подготовка к распаковке …/15-libglapi-mesa_22.2.5-0ubuntu0.1~22.04.1_amd64.deb …
+Распаковывается libglapi-mesa:amd64 (22.2.5-0ubuntu0.1~22.04.1) на замену (22.0.5-0ubuntu0.1) …
+Подготовка к распаковке …/16-libxatracker2_22.2.5-0ubuntu0.1~22.04.1_amd64.deb …
+Распаковывается libxatracker2:amd64 (22.2.5-0ubuntu0.1~22.04.1) на замену (22.0.5-0ubuntu0.1) …
+Подготовка к распаковке …/17-linux-firmware_20220329.git681281e4-0ubuntu3.10_all.deb …
+Распаковывается linux-firmware (20220329.git681281e4-0ubuntu3.10) на замену (20220329.git681281e4-0ubuntu3.9) …
+Подготовка к распаковке …/18-mesa-vulkan-drivers_22.2.5-0ubuntu0.1~22.04.1_amd64.deb …
+Распаковывается mesa-vulkan-drivers:amd64 (22.2.5-0ubuntu0.1~22.04.1) на замену (22.0.5-0ubuntu0.1) …
+Настраивается пакет libgbm1:amd64 (22.2.5-0ubuntu0.1~22.04.1) …
+Настраивается пакет alsa-ucm-conf (1.2.6.3-1ubuntu1.4) …
+Настраивается пакет fonts-noto-color-emoji (2.038-0ubuntu1) …
+Настраивается пакет linux-firmware (20220329.git681281e4-0ubuntu3.10) …
+update-initramfs: Generating /boot/initrd.img-5.15.0-60-generic
+…update-initramfs: Generating /boot/initrd.img-5.15.0-58-generic
+Настраивается пакет firmware-sof-signed (2.0-1ubuntu4.1) …#############################............................................]
+Настраивается пакет libjavascriptcoregtk-4.0-18:amd64 (2.38.4-0ubuntu0.22.04.1) …#########.........................................]
+Настраивается пакет less (590-1ubuntu0.22.04.1) …############################################......................................]
+Настраивается пакет gir1.2-javascriptcoregtk-4.0:amd64 (2.38.4-0ubuntu0.22.04.1) …##############...................................]
+Настраивается пакет libglapi-mesa:amd64 (22.2.5-0ubuntu0.1~22.04.1) …##############################................................]
+Настраивается пакет libwebkit2gtk-4.0-37:amd64 (2.38.4-0ubuntu0.22.04.1) …###########################..............................]
+Настраивается пакет gnome-initial-setup (42.0.1-1ubuntu2.2) …###########################################...........................]
+Настраивается пакет libllvm15:amd64 (1:15.0.6-3~ubuntu0.22.04.2) …#########################################........................]
+Настраивается пакет virtualbox-6.1 (6.1.42-155177~Ubuntu~jammy) …#############################################.....................]
+Настраивается пакет mesa-vulkan-drivers:amd64 (22.2.5-0ubuntu0.1~22.04.1) …#####################################...................]
+Настраивается пакет gir1.2-webkit2-4.0:amd64 (2.38.4-0ubuntu0.22.04.1) …###########################################................]
+Настраивается пакет libgl1-mesa-dri:amd64 (22.2.5-0ubuntu0.1~22.04.1) …###############################################.............]
+Настраивается пакет libxatracker2:amd64 (22.2.5-0ubuntu0.1~22.04.1) …####################################################..........]
+Настраивается пакет libegl-mesa0:amd64 (22.2.5-0ubuntu0.1~22.04.1) …########################################################.......]
+Настраивается пакет libglx-mesa0:amd64 (22.2.5-0ubuntu0.1~22.04.1) …##########################################################.....]
+Обрабатываются триггеры для hicolor-icon-theme (0.17-2) …########################################################################..]
+Обрабатываются триггеры для gnome-menus (3.36.0-1ubuntu3) …
+Обрабатываются триггеры для libc-bin (2.35-0ubuntu3.1) …
+Обрабатываются триггеры для man-db (2.10.2-1) …
+Обрабатываются триггеры для shared-mime-info (2.1-2) …
+Обрабатываются триггеры для mailcap (3.70+nmu1ubuntu1) …
+Обрабатываются триггеры для fontconfig (2.13.1-4.2ubuntu5) …
+Обрабатываются триггеры для desktop-file-utils (0.26-1ubuntu3) …
+oksana@oksana-VirtualBox:~$ snap install gimp
+ошибка: access denied (попробуйте как суперпользователь "sudo")
+oksana@oksana-VirtualBox:~$ sudo snap install gimp
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+[sudo] пароль для oksana:
+7777777
+Run install hook of "gimp" snap if present                                                                                            |
+Run install hook of "gimp" snap if present                                                                                            /
+Run install hook of "gimp" snap if present                                                                                            \Run install hook of "gimp" snap if present                                                                                            /Run install hook of "gimp" snap if present                                                                                            \Run install hook of "gimp" snap if present                                                                                            \gimp 2.10.30 от Snapcrafters установлен
+oksana@oksana-VirtualBox:~$ snap remove gimp
+ошибка: access denied (попробуйте как суперпользователь "sudo")
+oksana@oksana-VirtualBox:~$ sudo snap remove gimp
+/etc/sudoers:55:5: ошибка синтаксиса
+kdjf
+    ^
+Отключить gimp:icon-themes от gtk-common-themes:icon-themes                                                                           |Отключить gimp:icon-themes от gtk-common-themes:icon-themes                                                                           -Отключить gimp:icon-themes от gtk-common-themes:icon-themes                                                                           |Отключить gimp:icon-themes от gtk-common-themes:icon-themes                                                                           -Отключить gimp:gtk-3-themes от gtk-common-themes:gtk-3-themes                                                                         \gimp удалено
+oksana@oksana-VirtualBox:~$ add-apt-repository ppa:ondrey/php
+224  sudo apt autoremove
+  225  sudo apt update
+  226  sudo apt upgrade
+  227  snap install gimp
+  228  sudo snap install gimp
+  229  snap remove gimp
+  230  sudo snap remove gimp
+oksana@oksana-VirtualBox:~$ add-apt-repository ppa:ondrej/php
+дальше заходим в меню > выбираем программы и обновления >
+oksana@oksana-VirtualBox:~$ sudo add-apt-repository http://nginx.org/ru/linux_packages.html
+oksana@oksana-VirtualBox:~$ sudo add-apt-repository –list этой командой он добавил пакет, не разрешил еще, кога начнете пользоваться даст вам права
+oksana@oksana-VirtualBox:~$ nginx видим дополнительные файлы
+Заходим в программы и уведомления > переходим во вкладку другое ПО > ставим галочки > закрыть > обновить
+Установим гугл хром
+Заходим в мазилу
+Скачиваем гугл хром для люнекс
+Заходим в терминал пока скачивается
+история
+324  sudo add-apt-repository ppa:ondrey/php
+  325  add-apt-repository ppa:ondrey/php
+  326  sudo add-apt-repository ppa:ondrej/php
+  327  sudo add-apt-repository http://nginx.org/ru/linux_packages.html
+  328  sudo add-apt-repository --list
+  329  nginx
+
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ cd 'Загрузки' 
+oksana@oksana-VirtualBox:~/Загрузки$ ll 
+oksana@oksana-VirtualBox:~/Загрузки$ sudo
+oksana@oksana-VirtualBox:~/Загрузки$ sudo dpkg -l мы увидим все наши пакеты
+выход ctrl + c
+oksana@oksana-VirtualBox:~/Загрузки$ sudo dpkg –help
+oksana@oksana-VirtualBox:~/Загрузки$ sudo dpkg -I
+google-chrome-stable_current_amd64.deb
+seminar3 dostup komandy/
+oksana@oksana-VirtualBox:~/Загрузки$ sudo dpkg -I google-chrome-stable_current_amd64.deb
+oksana@oksana-VirtualBox:~/Загрузки$ sudo dpkg -i google-chrome-stable_current_amd64.deb добавление пакета
+
+
+
+
