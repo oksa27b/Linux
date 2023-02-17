@@ -1,0 +1,592 @@
+Лекция
+PS C:\Windows\System32\WindowsPowerShell\v1.0> ssh -p 8022 oksana@localhost
+oksana@oksana-VirtualBox:~$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash логин пользователя, проконтролировать пользователя можно здесь
+посмотреть файл можно, редактировать нельзя
+x это пароль, в данном случае заглушка
+0 это user  наш
+0 это id группы та самая основная группа в которой должен находиться наш пользователь
+Root полное имя пользователя
+:/root домашняя директория
+:/bin/bash оболочка
+oksana:x:1000:1000:oksana,,,:/home/oksana:/bin/bash вот наш первый 
+oksana@oksana-VirtualBox:~$ cat /etc/group посмотреть файл с группами. Группы такой же формат как passwd, только меньше информации
+sambashare:x:135:oksana сейчас я здесь нахожусь, мой пользователь здесь прописан
+adm:x:4:syslog,oksana если пользователей несколько, они будут через запятую
+не надо редактировать в ручную, лучше используйте команды
+oksana@oksana-VirtualBox:~$ cat /etc/shadow отказано в доступе
+oksana@oksana-VirtualBox:~$ sudo cat/etc/shadow надо смотреть через судо либо стать рутом на постоянной основе
+oksana@oksana-VirtualBox:~$ sudo cat /etc/shadow можем посмотреть
+root:!:19393:0:99999:7:::
+root логин пользователя
+! пароль ( у пользователя рут пароль не установлен)
+19393:0:99999:7::: свойство учетной записи, свойство пароля, в этом файле хранится дата
+99999 бесконечные действия с паролем
+bin:*:19213:0:99999:7:::
+*нет пароля это заглушка
+oksana:$y$j9T$GnrRjYhDecbAFawvKM5Tg/$XlOR1SXYLObDzEwQrV5YYFjGG9418722kTH98YLGjG8:19393:0:99999:7::: для нашего пользователя пароль установлен, конечно мы его не храним в открытом виде
+$y$j9T$GnrRjYhDecbAFawvKM5Tg/$XlOR1SXYLObDzEwQrV5YYFjGG9418722kTH98YLGjG8 здесь используется хзш функция для пароля, каждый пользователь будет иметь здесь уникальную строчку, в этом смысл защищенного хранения в системе хэш
+Если мы заблокируем пользователя, то перед паролем у него будет стоять ! знак
+Редактировать файл shadow только через команды
+
+oksana@oksana-VirtualBox:~$ sudo useradd -s /bin/bash -m -d /home/testuser testuser создать пользователя
+oksana@oksana-VirtualBox:~$ tail /etc/passwd проверить
+testuser:x:1001:1001::/home/testuser:/bin/bash появился пользователь нет пароля
+home/testuser домашняя директория нашего пользователя
+посмотрим как можно еще добавить пользователя с помощью скрипта
+oksana@oksana-VirtualBox:~$ sudo adduser testuser2  упрощает создание пользователей
+при запуске команды
+Добавляется пользователь «testuser2» ...
+Добавляется новая группа «testuser2» (1002) ...
+Добавляется новый пользователь «testuser2» (1002) в группу «testuser2» ...
+Создаётся домашний каталог «/home/testuser2» ...
+Копирование файлов из «/etc/skel» ... копируем файл в его домашнюю директорию
+Новый пароль: 1
+Введите новое значение или нажмите ENTER для выбора значения по умолчанию
+        Полное имя []: okokok okokokok
+        Номер комнаты []: 4543
+        Рабочий телефон []: 665433
+        Домашний телефон []: 4566
+        Другое []: okokokok
+chfn: имя «okokok okokokok» содержит не ASCII-символы
+Данная информация корректна? [Y/n] y подтверждаем введенные данные
+Мы создали группу, появился домашний каталог и создали пароль пользователя
+oksana@oksana-VirtualBox:~$ tail /etc/passwd
+testuser:x:1001:1001::/home/testuser:/bin/bash у первого пользователя нет пароля
+testuser2:x:1002:1002:okokok okokokok,4543,665433,4566,okokokok:/home/testuser2:/bin/bash у второго пользователя есть пароль
+oksana@oksana-VirtualBox:~$ sudo tail /etc/shadow более подробно посмотреть наших пользователей
+сделаем для нашего первого пользователя пароль
+oksana@oksana-VirtualBox:~$ passwd это будет означать смена пароля для нашего пользователя и в этом случае  sudo не требуется
+нашему пользователю оксана не будем менять пароль
+oksana@oksana-VirtualBox:~$ sudo passwd testuser
+Новый пароль: 2
+oksana@oksana-VirtualBox:~$ sudo tail /etc/shadow посмотрим подробно
+testuser:$y$j9T$b.ZIC7NR6cBHA8vO3Tr4C0$QTc7jb/xiYva5kYpzpRKiOpyZGgrUl1eTfFrKlTabC5:19399:0:99999:7:::
+testuser2:$y$j9T$gMf3OD8duIwf1Jqs72akP0$i5iek/eRktmc/zrA/lnZEPRg9CZ1LMi4i7kTGPLoCZ6:19399:0:99999:7:::
+
+создали два пользователя, зайдем в домашнюю директорию и посмотрим что там
+oksana@oksana-VirtualBox:~$ ls -al /home/testuser нам отказано в доступе, в убунте права настроены жестко
+oksana@oksana-VirtualBox:~$ sudo ls -al /home/testuser будем смотреть через судо
+oksana@oksana-VirtualBox:~$ ls -al /etc/skel скелетон некий профиль для создания нового пользователя проверяем это командой
+-rw-r--r--   1 root root   220 янв  6  2022 .bash_logout
+-rw-r--r--   1 root root  3771 янв  6  2022 .bashrc
+-rw-r--r--   1 root root   807 янв  6  2022 .profile
+Эти файлы копирует в оболочку, они нужны, для того чтобы настроить поведение оболочки и дальше их можем настраивать под каждого пользователя отдельно. Если вы хотите добавить файл, вам достаточно положить в этот skel
+
+Редактирование пользователя
+G список дополнительных групп
+oksana@oksana-VirtualBox:~$ sudo usermod -aG adm testuser создали в группе адм пользователя тестюзер
+oksana@oksana-VirtualBox:~$ id  посмотреть где наш пользователь в каких группах, смотрим где мы сейчас находимся, какой у нас пользователь и какая у нас группа и какие группы есть вообще.
+uid=1000(oksana) gid=1000(oksana) группы=1000(oksana),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),122(lpadmin),134(lxd),135(sambashare),999(vboxsf) id  1000, группа id  1000 те группы которые действуют сейчас, а дальше указан полный список групп в которые входит.
+Смотрим инфомацию о другом пользователе
+oksana@oksana-VirtualBox:~$ sudo id testuser
+uid=1001(testuser) gid=1001(testuser) группы=1001(testuser),4(adm) все группы где он есть
+если у вас есть активная сессия с пользователем, вам нужно будет перезайти, иначе не покажет. Об этом нужно помнить, если вы хотите увидеть изменения прямо сейчаc/
+Если вы хотите поменять основную группу
+oksana@oksana-VirtualBox:~$ sudo usermod -g www-data testuser
+oksana@oksana-VirtualBox:~$ sudo id testuser посмотрим что теперь с ним, у него теперь поменялась не дополнительная, а основная группа, вмести они определят как будут действовать права этого пользователя, которые мы будем рассматривать
+oksana@oksana-VirtualBox:~$ man usermod посмотреть документацию ман
+usermod(8)                                   Команды управления системой                                   usermod(8)
+
+НАЗВАНИЕ
+       usermod - изменяет учётную запись пользователя
+
+СИНТАКСИС
+       usermod [параметры] УЧЁТНАЯ_ЗАПИСЬ
+
+ОПИСАНИЕ
+       The usermod command modifies the system account files to reflect the changes that are specified on the command
+       line.
+
+ПАРАМЕТРЫ
+       The options which apply to the usermod command are:
+
+       -a, --append
+           Add the user to the supplementary group(s). Use only with the -G option.
+
+       -b, --badnames
+           Allow names that do not conform to standards.
+
+       -c, --comment COMMENT
+           The new value of the user's password file comment field. It is normally modified using the chfn(1)
+           utility.
+
+       -d, --home HOME_DIR
+           Домашний каталог нового пользователя.
+
+           If the -m option is given, the contents of the current home directory will be moved to the new home
+           directory, which is created if it does not already exist.
+
+       -e, --expiredate EXPIRE_DATE
+           The date on which the user account will be disabled. The date is specified in the format YYYY-MM-DD.
+
+           An empty EXPIRE_DATE argument will disable the expiration of the account.
+
+           This option requires a /etc/shadow file. A /etc/shadow entry will be created if there were none.
+
+       -f, --inactive INACTIVE
+Количество дней, которые должны пройти после устаревания пароля, чтобы учётная запись заблокировалась
+ Manual page usermod(8) line 1 (press h for help or q to quit)
+-a мы уже использовали
+-m когда мы создавали пользователя -m создавала домашнюю директорию,
+-m в usermod как перенос домашней директории -d новое место для его домашней директории
+Nanunit -o опасная опция, позволяет сделать пользователя с неуникальным user id это значит, что у вас будет два пользователя, которые имеют один и тоже юит, часто это делают для дублирования пользователя root
+U unlock разблокирует пользователя, т.е. убирает ! знак перед паролем
+-L блокирует пользователя, ставит ! знак перед паролем пользователя.
+Выйти q
+
+Теперь посмотрим на удаление пользователя
+oksana@oksana-VirtualBox:~$ sudo userdel testuser2
+oksana@oksana-VirtualBox:~$ sudo ls -al /home/testuser2 посмотрим в домашнем каталоге, видим директория осталась
+не хотите ее удалять
+
+oksana@oksana-VirtualBox:~$ man userdel
+при удалении пользователя в домашнем каталоге
+ oksana@oksana-VirtualBox:~$ sudo chage testuser
+
+создать группу
+oksana@oksana-VirtualBox:~$ sudo groupadd testgroup создали группу, она появилась
+oksana@oksana-VirtualBox:~$ sudo groupdel testgroup
+oksana@oksana-VirtualBox:~$ su testuser пароль 2 вошли в пользователя testuser
+testuser@oksana-VirtualBox:/home/oksana$ id посмотреть id  пользователя
+это у нас вложенная оболочка
+чтобы из нее выйти нужно набрать команду exit
+testuser@oksana-VirtualBox:/home/oksana$ exit мы попадаем обратно в своего пользователя
+так мы можем делать с любым пользователем у которого есть пароль
+а если у пользователя пароля нет, через команду su мы к нему попасть не сможем, или у этого пользователя другой shell
+
+сочетание команд sudo  и su вместе
+oksana@oksana-VirtualBox:~$ sudo su попадаем в пользователя root, заметьте что пароль сейчас не спрашивал, потому что, когда мы ввели корректный пароль, система какое-то время не будет спрашивать
+мы видим # мы стали суперпользователем root это тоже оболочка
+команда exit возвращает в обычного пользователя
+root@oksana-VirtualBox:/home/oksana# exit
+oksana@oksana-VirtualBox:~$ id команда подтверждает, что мы вернулись в обычного пользователя
+
+кто дает права нашему пользователю выполнять эти команды (эту команду нельзя дать исполнять любому пользователю)
+oksana@oksana-VirtualBox:~$ sudo visudo он откроет нам файл этс судоверс
+на вид мы находимся в обычном редакторе nano, который мы уже изучили, но на самом деле мы открыли временный файл расширение tmp. Все, что мы будем делать, мы будем отправлять в этот временный файл синтаксис этого файла, и если мы его нарушили, то система предложит нам сохранить исправленный файл или сохранит без изменений. Это защита от некорректных изменений. Эта команда позволяет нам делать все безопасно.
+С чего начинается конфигурация, у нас есть набор настроек, здесь можно определять набор путей, формы команд, все что начинается с решетки это комменнтарии, на них можно не обращать внимание.
+Дальше для
+root    ALL=(ALL:ALL) ALL это есть максимальная формула определения sudo, которое в принципе может быть, здесь указан root без каких либо знаков, значит здесь пользователь root
+%admin ALL=(ALL) ALL ниже есть группа 
+%sudo   ALL=(ALL:ALL) ALL (вместо ALL пишем /usr/bin/passwd то может менять в группе пароли кому угодно через судо) (если мы хотим отключить пароль, что не рекомендуется, набираем NOPPASSWD:ALL отменяет ввод пароля, не это открывает дырку безопасности
+% озночает группу
+Полная формула означает, что мы можем использовать команды с любым пользователем с любой группой
+@includedir /etc/sudoers.d  директория откуда будет подтягиваться конфигурация
+#
+# This file MUST be edited with the 'visudo' command as root.
+#
+# Please consider adding local content in /etc/sudoers.d/ instead of
+# directly modifying this file.
+#
+# See the man page for details on how to write a sudoers file.
+#
+Defaults        env_reset
+Defaults        mail_badpass
+Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+Defaults        use_pty
+
+# This preserves proxy settings from user environments of root
+# equivalent users (group sudo)
+#Defaults:%sudo env_keep += "http_proxy https_proxy ftp_proxy all_proxy no_proxy"
+
+# This allows running arbitrary commands, but so does ALL, and it means
+# different sudoers have their choice of editor respected.
+#Defaults:%sudo env_keep += "EDITOR"
+
+# Completely harmless preservation of a user preference.
+#Defaults:%sudo env_keep += "GREP_COLOR"
+
+# While you shouldn't normally run git as root, you need to with etckeeper
+#Defaults:%sudo env_keep += "GIT_AUTHOR_* GIT_COMMITTER_*"
+
+# Per-user preferences; root won't have sensible values for them.
+#Defaults:%sudo env_keep += "EMAIL DEBEMAIL DEBFULLNAME"
+
+# "sudo scp" or "sudo rsync" should be able to use your SSH agent.
+#Defaults:%sudo env_keep += "SSH_AGENT_PID SSH_AUTH_SOCK"
+
+# Ditto for GPG agent
+#Defaults:%sudo env_keep += "GPG_AGENT_INFO"
+
+# Host alias specification
+
+# User alias specification
+
+# Cmnd alias specification
+
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+
+# Members of the admin group may gain root privileges
+%admin ALL=(ALL) ALL
+
+# Allow members of group sudo to execute any command
+%sudo   ALL=(ALL:ALL) ALL
+
+# See sudoers(5) for more information on "@include" directives:
+
+@includedir /etc/sudoers.d
+
+
+Права доступа для файлов каталогов
+oksana@oksana-VirtualBox:~$ cd test3 переходим в директорию
+oksana@oksana-VirtualBox:~/test3$ ll просмотр
+oksana@oksana-VirtualBox:~/test3$ sudo chown testuser:www-data test команда что мы используем этот файл
+-rw-rw-r--  1 testuser www-data    0 фев  7 11:01 testt теперь у этой группы testt  владелец testuser
+
+Если мы хотим поменять владельца для каталога
+oksana@oksana-VirtualBox:~/test3$ sudo chown -R testuser:www-data /home/oksana/test3 опасная команда с рекурсивом -R
+oksana@oksana-VirtualBox:~/test3$ ll посмотреть
+oksana@oksana-VirtualBox:~/test3$ sudo chgrp -R adm /home/oksana/test3
+oksana@oksana-VirtualBox:~/test3$ ll посмотреть
+
+права доступа к самим файлом
+oksana@oksana-VirtualBox:~/test3$ ls -al посмотреть что у нас в системе
+oksana@oksana-VirtualBox:~/test3$ nano test2
+oksana@oksana-VirtualBox:~/test3$ id
+oksana@oksana-VirtualBox:~/test3$ sudo chgrp -R www-data /home/oksana/test3 поменяем группу
+oksana@oksana-VirtualBox:~/test3$ nano test2
+oksana@oksana-VirtualBox:~/test3$ sudo nano test2 права изменять есть
+oksana@oksana-VirtualBox:~/test3$ ls -al /usr/bin/passwd доступа нет
+-rwsr-xr-x 1 root root 59976 ноя 24 15:05 /usr/bin/passwd 
+oksana@oksana-VirtualBox:~/test3$ mc можно изменить доступ Ctrl+X+C 
+oksana@oksana-VirtualBox:~/test3$ cd .. сменить директорию, вернуться в домашнюю директорию
+oksana@oksana-VirtualBox:~$ sudo chmod -R 775 test3   изменить права доступа
+oksana@oksana-VirtualBox:~$ ll посмотреть список
+oksana@oksana-VirtualBox:~$ sudo chmod -r test3
+oksana@oksana-VirtualBox:~$ ls -al test3 нет доступа
+ls: невозможно открыть каталог 'test3': Отказано в доступе
+oksana@oksana-VirtualBox:~$ cat test3/test2 распечатать получилось
+oksana@oksana-VirtualBox:~$ ll
+зайти мы в каталог можем, настроить права доступа тоже, а список файлов мы посмотреть не можем
+
+вернуть права доступа
+oksana@oksana-VirtualBox:~$ sudo chmod +r test3
+oksana@oksana-VirtualBox:~$ ls -al test3
+oksana@oksana-VirtualBox:~$ sudo chmod u+rwx,g=rw,o-rx test2
+chmod: невозможно получить доступ к 'test2': Нет такого файла или каталога
+oksana@oksana-VirtualBox:~$ cd test3
+oksana@oksana-VirtualBox:~/test3$ sudo chmod u+rwx,g=rw,o-rx test2 добавлять права можно + забирать права -
+oksana@oksana-VirtualBox:~$ sudo chmod g+s test3
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ cd test3
+oksana@oksana-VirtualBox:~/test3$ id
+oksana@oksana-VirtualBox:~/test3$ touch test_spid попробуем создать файл, отказано в доступе
+oksana@oksana-VirtualBox:~/test3$ sudo chmod a+w /home/oksana/test3 сделаем доступ в директорию, добавим запись, для того чтобы мы могли туда записать файл
+oksana@oksana-VirtualBox:~/test3$ ll  посмотрим
+oksana@oksana-VirtualBox:~/test3$ touch test_spid создаем файл
+oksana@oksana-VirtualBox:~/test3$ ll смотрим
+oksana@oksana-VirtualBox:~/test3$ ls -al /tmp где мы можем увидеть скипеты
+oksana@oksana-VirtualBox:~/test3$ ls -al посмотреть текущее состояние директории
+
+проверить значение доступ  к umask
+oksana@oksana-VirtualBox:~/test3$ umask
+0002 
+-rw-rw-r--  1 oksana   www-data    0 фев 12 19:37 ddd создаст нам права доступа 664
+oksana@oksana-VirtualBox:~/test3$ touch ddd создать файл 
+oksana@oksana-VirtualBox:~/test3$ ll посмотреть
+oksana@oksana-VirtualBox:~/test3$ umask 022 поменяем себе права
+oksana@oksana-VirtualBox:~/test3$ touch ddd2
+oksana@oksana-VirtualBox:~/test3$ ll
+
+-rw-r--r--  1 oksana   www-data    0 фев 12 19:40 ddd2  это 644
+
+Все команды лекции
+oksana@oksana-VirtualBox:~/test3$ history
+    1  sudo apt update
+    2  sudo apt install mc
+    3  mc
+    4  sudo apt install openssh-server
+    5  ip a
+    6  systemctl status ssh
+    7  ip a
+    8  sudo apt update
+    9  sudo apt install gcc make perl
+   10  sudo reboot
+   11  sudo usermod -aG vboxsf oksana
+   12  mc
+   13  mc
+   14  exit
+   15  cd /home
+   16  sudo su
+   17  cd
+   18  cd /
+   19  cd ~
+   20  ls -al
+   21  ls -l
+   22  cd /proc
+   23  ls -al
+   24  cat cpuinfo
+   25  cd /d
+   26  cd
+   27  cd /proc
+   28  cd /dev
+   29  ls -al
+   30  cd /run
+   31  ls -al
+   32  ls
+   33  ls -a
+   34  ls -al
+   35  ls --help
+   36  man ls
+   37  pwd
+   38  cd ~/.config
+   39  pwd
+   40  cd
+   41  mkdir test
+   42  ls -al
+   43  mkdir 1/2/3/4/5
+   44  mkdir -p 1/2/3/4/5
+   45  ls -al
+   46  cd 1
+   47  cd 2
+   48  cd 3
+   49  cd 4
+   50  ll
+   51  cd ~/test
+   52  ll
+   53  cat > tstfile
+   54  ll
+   55  cp testfile test 2
+   56  cp testfile test2
+   57  cp tstfile test2
+   58  ll
+   59  cd ..
+   60  ll
+   61  cp test test2
+   62  ll
+   63  cp -r test test2
+   64  ll
+   65  cd test2
+   66  ll
+   67  cd
+   68  mv test test 3
+   69  ll
+   70  mv test test3
+   71  ll
+   72  cd test2
+   73  ll
+   74  rm test2
+   75  ll
+   76  cd
+   77  rm -rf test2
+   78  ll
+   79  rm -rf /home/oksana/test2^C
+   80  cd test3/
+   81  ll
+   82  touch testt
+   83  ll
+   84  cat tstfile test2 > test_all
+   85  ll
+   86  cat test_all
+   87  cd /
+   88  ll
+   89  cd /home/oksana
+   90  cd /
+   91  cd home
+   92  cd oksana
+   93  pwd
+   94  cd /home/oksana
+   95  pwd
+   96  cd ~
+   97  cd ..
+   98  cd ../..
+   99  cd
+  100  ls -al
+  101  cd
+  102  ll
+  103  cat ./.bash_logout
+  104  cat .bash_logout
+  105  cd test3/
+  106  ll
+  107  ln test2 test_ln
+  108  ll
+  109  ls -ali
+  110  cat >>test_ln
+  111  ll
+  112  ln -s test2 test_lns
+  113  ll
+  114  ls -ali
+  115  ln -s /home/oksana/test3/test2 test_lns_abs
+  116  ln -s /homeall
+  117  ll
+  118  ln -s /home/oksana/test3/test2 test_lns_abs
+  119  ll
+  120  mv test_lns ..
+  121  ll
+  122  cd ..
+  123  ll
+  124  mv test_lns test3/
+  125  cd test3
+  126  ll
+  127  mv homeall test3/
+  128  all
+  129  ll
+  130  ln -s test3 test_ln_dir
+  131  jj
+  132  ll
+  133  vim
+  134  cd test3
+  135  vim test2
+  136  ll
+  137  vim test2
+  138  vimtutor
+  139  nano test2
+  140  ll
+  141  mcedit test2
+  142  less test2
+  143  more test2
+  144  more /var/log/syslog
+  145  h
+  146  head .bashrc
+  147  cd
+  148  head .bashrc
+  149  head -n 3 .bashrc
+  150  tail -n 3 .bashrc
+  151  tail -f /var/log/auth.log
+  152  ll
+  153  rm newfile1.txt
+  154  ll
+  155  rm newfile2.txt
+  156  ll
+  157  sudo usermod -aG adm testuser
+  158  id
+  159  sudo id testuser
+  160  sudo usermod -g www-data testuser
+  161  sudo id testuser
+  162  man usermod
+  163  sudo user del
+  164  sudo userdel testuser2
+  165  sudo ls -al /home/testuser2
+  166  man userdel
+  167  sudo chage testuser
+  168  sudo groupadd testgroup
+  169  sudo groupdel testgroup
+  170  su testuser
+  171  sudo su
+  172  id
+  173  sudo visudo
+  174  cd test3
+  175  ll
+  176  sudo chown testuser:www-data testt
+  177  ll
+  178  sudo visudo
+  179  sudo chown -R testuser:www-data /home/oksana/test3
+  180  ll
+  181  sudo chgrp -R adm /home/oksana/test3
+  182  ll
+  183  ls -al
+  184  nano test2
+  185  id
+  186  sudo chgrp -R www-data /home/oksana/test3
+  187  ll
+  188  nano test2
+  189  sudo nano test2
+  190  ls -al /usr/bin/passwd
+  191  cd test3
+  192  ll
+  193  sudo chmod u=rwx,g=rw,o=rx test2
+  194  ll
+  195  sudo chmod 664 test2
+  196  ll
+  197  mc
+  198  cd ..
+  199  sudo chmod -R 775 test3
+  200  ll
+  201  sudo chmod -r test3
+  202  ls -al test3
+  203  cat test3/test2
+  204  ll
+  205  sudo chmod +r test3
+  206  ls -al test3
+  207  sudo chmod u+rwx,g=rw,o-rx test2
+  208  cd test3
+  209  sudo chmod u+rwx,g=rw,o-rx test2
+  210  cd ..
+  211  cd test3
+  212  sudo chmod g+s test3
+  213  cd
+  214  sudo chmod g+s test3
+  215  ll
+  216  cd test3
+  217  id
+  218  touch test_spid
+  219  sudo chmod +w /home/oksana/test3
+  220  sudo chmod a+w /home/oksana/test3
+  221  ll
+  222  touch test_spid
+  223  ll
+  224  ls -al /tmp
+  225  ls -al
+  226  umask
+  227  touch ddd
+  228  ll
+  229  umask 022
+  230  touch ddd2
+  231  ll
+  232  history
+oksana@oksana-VirtualBox:~/test3$
+
+Семинар
+oksana@oksana-VirtualBox:~$ sudo su  нам нужно в пользователя рут попасть чтобы научиться создавать пользователя
+root@oksana-VirtualBox:/home/oksana# ll посмотрим сколько у нас файлов, есть такое понятие файлы, которые имеют свои группы, пользователей и тп
+root@oksana-VirtualBox:/home/oksana# chmod 777 test5/ 
+root@oksana-VirtualBox:/home/oksana# ll видим, что внутри этой папки мы можем выполнять что-то, могут выполнять группа или пользователь. Для этого пишем
+root@oksana-VirtualBox:/home/oksana# chmod 110 test5/ таким образом мы скажем что 1 это права  пользователя может выполнять, 1 это права  группы тоже может выполнять, 0 это права  остальных пользователей.
+root@oksana-VirtualBox:/home/oksana# ll
+x выполнить 1
+root@oksana-VirtualBox:/home/oksana# chmod 220 test5
+root@oksana-VirtualBox:/home/oksana# ll
+1 x хотите выполнять
+2 w хотите прочитать
+
+3 xw  выполнить и прочитать
+4 r хотите записать
+5 rx что-то записывать
+6 rw прочитать и записать
+7 rwx прочитать записать и использовать
+0 прочерк, ничего не довать
+Для пользователя, для группы и всех остальных, пример
+Drwxr -                       xr-                     x
+
+Пользователь и права
+1 создать пользователя виртуально
+2 создать пользователя со всеми директориями
+root@oksana-VirtualBox:/home/oksana# useradd arnold создали виртуального пользователя
+root@oksana-VirtualBox:/home/oksana# passwd arnold создаем пароль (1)
+root@oksana-VirtualBox:/home/oksana# su arnold  чтобы зайти в нашего пользователя
+(изменить свой пароль команда passwd oksana)
+ll  команда нет доступа, можно создать папку
+S mkdir papka создаем папку
+Отказано в доступе
+S exit
+Создаем пользователя со своей директорией
+root@oksana-VirtualBox:/home/oksana# cd 
+root@oksana-VirtualBox:# ll 
+root@oksana-VirtualBox:# adduser bob создали пользователя с директорией пароль (2)
+root@oksana-VirtualBox:# su bob перейти под этим пользователем
+дальше можно настройки > сменить пользователя > выбрать bob 
+сменить пользователя на нашего
+bob@oksana-VirtualBox:/rootS cat /etc/passwd здесь нам отображает весь список наших пользователей и где они хранятся
+bob@oksana-VirtualBox:/rootS exit
+
+root@oksana-VirtualBox:# ll
+поменяем пользователя
+root@oksana-VirtualBox:# mkdir 23 создаем папку
+root@oksana-VirtualBox:# ll смотрим
+root@oksana-VirtualBox:# chown -R bob 23 даем права пользователю, теперь папка 23 принадлежит этому пользователю боб
+поработаем с группами
+exit
+oksana@oksana-VirtualBox:~$ ll смотрим
+oksana@oksana-VirtualBox:~$ id oksana видим несколько групп, которые мы можем использовать
+oksana@oksana-VirtualBox:~$ groupadd newgroup создаем новую группа
+oksana@oksana-VirtualBox:~$ sudo du  чтобы зайти под правами
+root@oksana-VirtualBox:# groupadd newgroup создаем новую группа
+root@oksana-VirtualBox:# chown oksana:newgroup test5/ наша папка внутри, все пользователи, которые имеют доступ к невгрупп, они могут пользоваться. Мы можем конкретному пользователю дать пользоваться конкретным файлом
+root@oksana-VirtualBox:# usermod -aG newgroup oksana даем права конкретному пользователю пользоваться конкретной группой 
+root@oksana-VirtualBox:# tail /etc/group смотрим все данные нашей группы
+
+
+
+
