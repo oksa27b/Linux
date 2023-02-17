@@ -1,0 +1,238 @@
+Лекция урок 2
+PS C:\Windows\System32\WindowsPowerShell\v1.0> ssh -p 8022 oksana@localhost    подключиться к порту
+oksana@oksana-VirtualBox:~$ cd /home 
+oksana@oksana-VirtualBox:/home$ sudo su переключаемся в пользователя рут (суперпользователь или администратор)
+root@oksana-VirtualBox:/home# exit выход
+oksana@oksana-VirtualBox:/home$ cd переход в другую директорию в домашний каталог
+oksana@oksana-VirtualBox:~$ cd / переход в корень
+oksana@oksana-VirtualBox:/$ cd ~ вернуться в домашний каталог
+oksana@oksana-VirtualBox:~$ ls -al посмотреть список файлов с полной детализацией, список всех каталогов
+oksana@oksana-VirtualBox:~$ ls -l 
+oksana@oksana-VirtualBox:~$ cd /proc 
+oksana@oksana-VirtualBox:/proc$ ls -al список элементов
+oksana@oksana-VirtualBox:/proc$ cat cpuinfo распечатаем файл
+oksana@oksana-VirtualBox:/proc$ cd /d 
+oksana@oksana-VirtualBox:/proc$ cd
+oksana@oksana-VirtualBox:~$ cd /proc
+oksana@oksana-VirtualBox:/proc$ cd /dev каталог 
+oksana@oksana-VirtualBox:/dev$ ls -al
+
+Основные команды, которые будем использовать 
+oksana@oksana-VirtualBox:/dev$ cd /run 
+oksana@oksana-VirtualBox:/run$ ls -al
+oksana@oksana-VirtualBox:/run$ ls без подробностей
+oksana@oksana-VirtualBox:/run$ ls -a посмотреть скрытые файлы
+oksana@oksana-VirtualBox:/run$ ls -al  подробно посмотреть скрытые файлы
+oksana@oksana-VirtualBox:/run$ ls –help этот параметр который дает краткую справку по команде, по ее ключам
+oksana@oksana-VirtualBox:/run$ man ls команда для просмотра документации, увидим более подробный вариант, здесь мы можем посмотреть абсолютно все, выйти q
+oksana@oksana-VirtualBox:/run$ pwd показать текущий каталог
+oksana@oksana-VirtualBox:/run$ cd ~/.config 
+oksana@oksana-VirtualBox:~/.config$ pwd
+oksana@oksana-VirtualBox:~/.config$ cd
+
+все эксперементы нужно проводить в домашнем каталоге
+
+oksana@oksana-VirtualBox:~$ mkdir test создание каталога создаем дерикторию
+oksana@oksana-VirtualBox:~$ ls -al проверим
+oksana@oksana-VirtualBox:~$ mkdir 1/2/3/4/5 ошибку надо читать
+oksana@oksana-VirtualBox:~$ mkdir -p 1/2/3/4/5 создаем кучу директорий в нашей директории
+oksana@oksana-VirtualBox:~$ ls -al проверяем
+oksana@oksana-VirtualBox:~$ cd 1 переход в директорию
+oksana@oksana-VirtualBox:~/1$ cd 2 переход в директорию
+oksana@oksana-VirtualBox:~/1/2$ cd 3 переход в директорию
+oksana@oksana-VirtualBox:~/1/2/3$ cd 4 переход в директорию
+oksana@oksana-VirtualBox:~/1/2/3/4$ ll псевдоним для команды LS, использовать только в убунте
+oksana@oksana-VirtualBox:~/1/2/3/4$ cd ~/test возврат в директорию тест
+oksana@oksana-VirtualBox:~/test$ ll проверяем
+oksana@oksana-VirtualBox:~/test$ cat > tstfile создаем наш первый файл, нет расширения. Будем набирать произвольный текст, когда мы закончили нужно нажать Ctrl + D закроет файл.
+oksana@oksana-VirtualBox:~/test$ ll проверяем
+oksana@oksana-VirtualBox:~/test$ cp tstfile test2 копируем наш файл откуда и куда указываем
+oksana@oksana-VirtualBox:~/test$ ll проверяем
+oksana@oksana-VirtualBox:~/test$ cd .. перейти на уровень вверх
+oksana@oksana-VirtualBox:~$ ll проверяем
+oksana@oksana-VirtualBox:~$ cp test test2 здесь мы копируем каталог
+oksana@oksana-VirtualBox:~$ ll не получилось не указан параметр -r (рекурсия - обработка всех документов)
+oksana@oksana-VirtualBox:~$ cp -r test test2 
+oksana@oksana-VirtualBox:~$ ll проверяем, появился каталог тест2, скопировалось в новое место
+oksana@oksana-VirtualBox:~$ cd test2 заходим в директорию тест2
+oksana@oksana-VirtualBox:~/test2$ ll проверяем
+oksana@oksana-VirtualBox:~/test2$ cd вернемся в домашний каталог
+oksana@oksana-VirtualBox:~$ mv test test 3 переносит наши файлы или переименовывает, 
+Например мы хотим переместить наш каталог тест в тест3. Мы знаем, что наш каталог муф переносит наши файлы откуда и куда переименование файла. Но здесь реально зависит от того где находится наш каталог, если источник и назначение находится в рамках одной файловой системы допустим одного раздела жесткого диска, тогда эта операция переименование файла. Т.е. аналог операции, которая обычно называется rename. Потому что реально файлы никуда не будут двигаться, не будем ничего копировать, просто переименуем каталог и он будет иметь другое название, другой путь и все. 
+А если источник назначения находится на разных дисках, тогда мы будем реально копировать и удалять их в другом месте, копирование + удаление, будет не быстро, если директория занимает  несколько гигобайт.
+Поэтому когда mv в голове держим, что у нас будет переименование или перенос файлов.
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ mv test test3
+oksana@oksana-VirtualBox:~$ ll
+
+Переходим к опасным командам 
+
+oksana@oksana-VirtualBox:~$ cd test2 переходим в директорию тест2
+oksana@oksana-VirtualBox:~/test2$ ll проверяем
+oksana@oksana-VirtualBox:~/test2$ rm test2 удаление файла, у нее есть два важных параметра r (будет работать на директорию) и f
+oksana@oksana-VirtualBox:~/test2$ ll проверим
+oksana@oksana-VirtualBox:~/test2$ cd переходим в домашний каталог
+oksana@oksana-VirtualBox:~$ rm -rf test2 указываем директорию тест2, удалила файл безвозвратно. Опасная команда
+oksana@oksana-VirtualBox:~$ ll проверяем
+Ctrl + L  или команда clear очищает терминал
+oksana@oksana-VirtualBox:~$ rm -rf /home/oksana/test2^C  чтобы удалить без ошибки, для более точного пути к директории надо указать
+нужно всегда иметь резервную копию
+oksana@oksana-VirtualBox:~$ cd test3/ переход в каталог тест3
+oksana@oksana-VirtualBox:~/test3$ ll
+oksana@oksana-VirtualBox:~/test3$ touch test создаем новый файл тест
+oksana@oksana-VirtualBox:~/test3$ ll проверяем
+oksana@oksana-VirtualBox:~/test3$ cat tstfile test2 > test_all склейка файлов, > переводит информацию в другой файл
+oksana@oksana-VirtualBox:~/test3$ ll проверяем
+oksana@oksana-VirtualBox:~/test3$ cat test_all  распечатать файл и посмотреть что два наших файла дополнились
+oksana@oksana-VirtualBox:~/test3$ cd / абсолютный путь начинается с корня
+для команды rm лучше использовать абсолютный путь
+oksana@oksana-VirtualBox:/$ ll проверяем
+oksana@oksana-VirtualBox:/$ cd /home/Oksana сходить в домашнюю директорию по абсолютному пути
+oksana@oksana-VirtualBox:~$ cd / ушли в корень
+oksana@oksana-VirtualBox:/$ cd home относительный путь зайти в директорию home 
+oksana@oksana-VirtualBox:/home$ cd Oksana относительный путь зайти в директорию oksana
+oksana@oksana-VirtualBox:~$ cd oksana
+oksana@oksana-VirtualBox:~$ pwd
+oksana@oksana-VirtualBox:~$ cd /home/Oksana 
+oksana@oksana-VirtualBox:~$ pwd посмотреть где мы находимся
+oksana@oksana-VirtualBox:~$ cd ~ наш домашний каталок
+oksana@oksana-VirtualBox:~$ cd .. жесткая ссылка на наш вышележащий каталог
+oksana@oksana-VirtualBox:/home$ cd .. на верхнем уровне находимся
+oksana@oksana-VirtualBox:/$ cd ..
+oksana@oksana-VirtualBox:/$ cd ../.. можно уйти на два уровня вверх
+oksana@oksana-VirtualBox:/$ cd
+oksana@oksana-VirtualBox:~$ ls -al 
+. это ссылка на текущий каталог мы его можем использовать в качестве относительного пути
+.. 
+oksana@oksana-VirtualBox:~$ cd перейдем в домашний каталог
+oksana@oksana-VirtualBox:~$ ll посмотрим
+./
+oksana@oksana-VirtualBox:~$ cat ./.bash_logout если мы хотим распечатать файл в текущей директории. Если мы хотим скопировать файл в текущий каталог
+Не путать относительный и абсолютный пути, они будут работать по другому
+oksana@oksana-VirtualBox:~$  cat .bash_login 
+oksana@oksana-VirtualBox:~$ cat .bash_logout
+
+Символические ссылки
+символическую ссылку не можем редактировать внутри
+oksana@oksana-VirtualBox:~$ ln -s test2 test_lns создала ошибочно символическую ссылку
+oksana@oksana-VirtualBox:~$ ll просмотр поняла что не в той папке
+oksana@oksana-VirtualBox:~$ cd test3 переход в нужную папку
+oksana@oksana-VirtualBox:~/test3$ ln -s test2 test1_lns создание там символической ссылки использовать везде и перемещать мы ее не сможем 
+oksana@oksana-VirtualBox:~$ ll просмотр
+oksana@oksana-VirtualBox:~/test3$ ls -ali удостоверимся что он использует отдельный айнод
+мы можем сделать эту же команду в виде абсолютного пути
+oksana@oksana-VirtualBox:~/test3$ ln -s /home/oksana/test3/test2 test1_lns_abs эту ссылку мы може использовать везде, перемещать как хотим
+oksana@oksana-VirtualBox:~/test3$ ll смотрим
+oksana@oksana-VirtualBox:~/test3$ mv test1_lns .. попробуем перенести на уровень вверх нашу ссылку
+oksana@oksana-VirtualBox:~/test3$ ll смотрим, она здесь пропала
+oksana@oksana-VirtualBox:~/test3$ cd .. переходим на уровень вверх 
+oksana@oksana-VirtualBox:~$ ll смотрим, она скопировалась, но подцветка у нас грустная, можно сказать, эта подцветка обозначает, что наша ссылка перестала работать, т.е. она ссылается на файл в текущей директории, потому что путь при создании был относительным. Значит, что эта ссылка сломалась, а если бы здесь был элемент тест2, то она ссылалась на этот каталог, но его здесь нет, поэтому ссылка сломалась
+поэтому перенесем обратно, на свое место
+oksana@oksana-VirtualBox:~$ mv test1_lns test3/ перенесем наши ссылки в каталог тест3, просто для понимания, что мы действительно вносим в каталог
+oksana@oksana-VirtualBox:~$ mv test_lns test3/
+oksana@oksana-VirtualBox:~$ cd test3 вернемся в директорию
+oksana@oksana-VirtualBox:~/test3$ ll и посмотрим, ссылки в порядке не имеют никаких проблем
+когда мы смотрим на символическую ссылку, мы смотри на файл на который она ссылается, например если хотим дозаписать test_lns мы увеличим файл тест2. И по ссылке дойдем до этого файла, давайте попробуем
+oksana@oksana-VirtualBox:~ /test3$  ln test2 test_lns  у этих двух файлов видим ай-ноды уникальные
+oksana@oksana-VirtualBox:~/test3$ ll
+если хотим посмотреть, что айнод действительно ссылается на жесткую ссылку, посмотреть информацию команда
+oksana@oksana-VirtualBox:~ /test3$  ls -ali  в айнодах мы видим номер айнода в 1 столбце
+неважно где будет создана жесткая ссылка, может в этой директории, может в любой другой, главное что жесткие ссылки могут работать только в одной файл-системе, т.е. в рамках одного жесткого диска за пределами других разделах мы создавать жесткие ссылки не можем, там  будут свои айноды, не связанные с нашим. У жестких ссылок есть ограничения – одна файловая система для всех
+что мы можем сделать с этими файлами, проведем эксперемент, мы сейчас дозапишем несколько файликов в один файл
+мы можем сделать команду в виде относительной ссылки
+oksana@oksana-VirtualBox:~ /test3$  ln -s /home/Oksana/test3/test2 test_lns_abs это абсолютный путь к файлу test_lns_abc
+oksana@oksana-VirtualBox:~/test3$ ll
+мы ссылку после стрелки можем указывать везде, можем перемещать, можем указывать на эту точку, а вот с первой ссылкой мы так сделать не сможем
+давайте перенесем ее на уровень вверх
+oksana@oksana-VirtualBox:~/test3$ mv test_lns ..
+oksana@oksana-VirtualBox:~/test3$ ll
+она пропала, а если на уровень вверх, она есть, скопировалась, но подцветка такая, эта подцветка обозначает, что файл перестал работать, показывает что файл test2 в текущей директории, что путь при создании был относительным, значит, что сейчас эта ссылка сломалась. Если бы в этом каталоге был элемент тест2, тогда она его тест2.
+oksana@oksana-VirtualBox:~/test3$ cd ..
+oksana@oksana-VirtualBox:~$ ll
+
+внести на место ссылку
+oksana@oksana-VirtualBox:~$ mv test_lns test3/
+oksana@oksana-VirtualBox:~$ cd test3 вернемся туда
+oksana@oksana-VirtualBox:~/test3$ ll видим, что с этой ссылкой все нормально и нет никаких проблем
+Мы всегда, когда смотрим на символическую ссылку, на самом деле работаем с файлом на который она ссылается, допустим мы сейчас хотим дозаписать данные в test_lns мы увеличим файл тест2
+Давайте попробуем
+
+oksana@oksana-VirtualBox:~/test3$ cat >> test_lns добавим текст
+oksana@oksana-VirtualBox:~/test3$ ll ссылка как была так и есть увеличились байты
+
+создать ссылку на директорию
+oksana@oksana-VirtualBox:~/test3$ cd..
+oksana@oksana-VirtualBox:~$ ln -s test3 test_ln_dir наша директория работает, будет относиться к относительной, потому что здесь указали путь.
+
+Текстовый редактор
+oksana@oksana-VirtualBox:~$ vim заходим в текстовый редактор
+oksana@oksana-VirtualBox:~$ sudo apt install vim устанавливаем его
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Семинар 2
+oksana@oksana-VirtualBox:~$ cd cd snap/
+oksana@oksana-VirtualBox:~$ cd snap/
+oksana@oksana-VirtualBox:~/snap$ ll
+oksana@oksana-VirtualBox:~/snap$ cd ..
+oksana@oksana-VirtualBox:~$ cd ..
+oksana@oksana-VirtualBox:/home$ cd ..
+oksana@oksana-VirtualBox:/$ cd ~
+oksana@oksana-VirtualBox:~$ mkdir mac
+oksana@oksana-VirtualBox:~$ ls
+oksana@oksana-VirtualBox:~$ cd mac
+oksana@oksana-VirtualBox:~/mac$ touch test.txt
+oksana@oksana-VirtualBox:~/mac$ ls
+oksana@oksana-VirtualBox:~/mac$ ll
+oksana@oksana-VirtualBox:~/mac$ nano test.txt
+oksana@oksana-VirtualBox:~/mac$ cat test.txt
+oksana@oksana-VirtualBox:~/mac$ cp test.txt ../
+oksana@oksana-VirtualBox:~/mac$ cd ..
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ rm test.txt
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ cd mac
+oksana@oksana-VirtualBox:~/mac$ ll
+oksana@oksana-VirtualBox:~/mac$ mkdir papka
+oksana@oksana-VirtualBox:~/mac$ cd ..
+oksana@oksana-VirtualBox:~$ rm -rf mac
+oksana@oksana-VirtualBox:~$ ls
+oksana@oksana-VirtualBox:~$ rm --help
+oksana@oksana-VirtualBox:~$ crontab -e
+oksana@oksana-VirtualBox:~$ ln -s test3 newtest
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ rm newtest
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ mv test_ln_dir newfile
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ mkdir -p test_one/dir--{000..010}
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ cd test_one/
+oksana@oksana-VirtualBox:~/test_one$ ll
+oksana@oksana-VirtualBox:~/test_one$ cd ..
+oksana@oksana-VirtualBox:~$ touch test_one/dir--{A..E}.txt
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ cd test_one/
+oksana@oksana-VirtualBox:~/test_one$ ll
+oksana@oksana-VirtualBox:~/test_one$ cd dir--000
+oksana@oksana-VirtualBox:~/test_one/dir--000$ ll
+
+
+
+	
