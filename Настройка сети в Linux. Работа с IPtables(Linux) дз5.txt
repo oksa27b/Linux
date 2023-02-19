@@ -1,0 +1,37 @@
+Урок 5. Настройка сети в Linux. Работа с IPtables
+Задание:
+* Настроить статическую конфигурацию (без DHCP) в Ubuntu через ip и netplan. Настроить IP, маршрут по умолчанию и DNS-сервера (1.1.1.1 и 8.8.8.8). Проверить работоспособность сети.
+oksana@oksana-VirtualBox:~$ sudo ip link set enp0s3 up
+oksana@oksana-VirtualBox:~$ ip a
+oksana@oksana-VirtualBox:~$ ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+oksana@oksana-VirtualBox:~$ ip a
+oksana@oksana-VirtualBox:~$ sudo ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+oksana@oksana-VirtualBox:~$ ip a
+oksana@oksana-VirtualBox:~$ sudo ip route add default via 127.0.0.1
+oksana@oksana-VirtualBox:~$ ip a
+oksana@oksana-VirtualBox:~$ ping ya.ru
+oksana@oksana-VirtualBox:~$ ip a
+oksana@oksana-VirtualBox:~$ ip r
+oksana@oksana-VirtualBox:~$ ping 8.8.8.8 
+
+* Настроить правила iptables для доступности сервисов на TCP-портах 22, 80 и 443. Также сервер должен иметь возможность устанавливать подключения к серверу обновлений. Остальные подключения запретить.
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+oksana@oksana-VirtualBox:~$ sudo iptables -A INPUT -p tcp --dport=22 -j ACCEPT
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+oksana@oksana-VirtualBox:~$ sudo iptables -A INPUT -p tcp --dport=80 -j ACCEPT
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+oksana@oksana-VirtualBox:~$ sudo iptables -A INPUT -p tcp --dport=443 -j ACCEPT
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+oksana@oksana-VirtualBox:~$ sudo iptables -t filter -A INPUT -s ubuntu.com -j ACCEPT
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+oksana@oksana-VirtualBox:~$ sudo iptables -P INPUT DROP
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+
+* Запретить любой входящий трафик с IP 3.4.5.6.
+oksana@oksana-VirtualBox:~$ sudoiptables -t filter -A INPUT -s 3.4.5.6 -j DROP
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+oksana@oksana-VirtualBox:~$ sudo mkdir /etc/iptables-conf/
+oksana@oksana-VirtualBox:~$ sudo iptables-save -f /etc/iptables-conf/iptables_rules.ipv4
+
+* * Запросы на порт 8090 перенаправлять на порт 80 (на этом же сервере).
+* * Разрешить подключение по SSH только из сети 192.168.0.0/24.
