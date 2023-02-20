@@ -1,0 +1,1362 @@
+Лекция
+Какие у нас есть сетевые интерфейсы   
+oksana@oksana-VirtualBox:~$ ip a                        
+2 сетевых интерфейса это lo локальный интерфейс, который не выходит за пределы нашего компа
+Link это макадрес
+Inet  это наш айпи 10.0.0.1 с маской подсети /24
+oksana@oksana-VirtualBox:~$ ip -s a  посмотрим статистику по пакетам, сколько было передано пакетов, какие-то низкоуровневые ошибки
+oksana@oksana-VirtualBox:~$ ip r  далее информация по маршрутизации  (видим  3 маршрута самый главный маршрут первый он называется дефолт- это шлюз, через который мы отправляем пакеты за пределы нашей локальной сети и адрес шлюза указан в этой строке. И это адрес -точка, через который мы можем пойти дальше в другие сети.
+Второй маршрут это и есть наша локальная сеть, адрес является точкой, через которую мы можем пойти дальше по нашим сетям, например в  интернет, наши соседние сети, все что не является нашей локальной сетью. Второй маршрут это как раз и есть наша локальная сеть, здесь мы можем ходить напрямую через свой интерфейс, доступный без мршрутизатора.
+Третий маршрут это для внутренней сети, в нем можно увидеть метрики это условная стоимость маршрута, если у вас несколько маршрутов вы можете выбирать более дешевые.
+
+Сокеты и порты
+oksana@oksana-VirtualBox:~$ ss -ntlp просмотр наших сокетов, в нашей сети есть 22 порт это ssh, айпи адрес 0.0.0.0. [] обозначают айпи в 6 адреса. Есть также сокет для 53 порта это днс служба, здесь указан айпишник для убека локального интерфейста
+oksana@oksana-VirtualBox:~$ sudo !! для команды выше
+теперь мы видим список программ, которые привязаны к каждому конкретному сокету, мы видим загадочный 53 порт слушает сервис,который предоставляет нам доступ к днс и через него мы работаем с доменными именами.
+oksana@oksana-VirtualBox:~$ ss -ntlup теперь у нас появятся ю сокеты в 1 столбце мы видим тип протокола
+oksana@oksana-VirtualBox:~$ ss -tulpan мы здесь видим, что у нас помимо тех сокетов, которые были появился сокет  эстаб и это подключение моего локального терминала к машине и в этом плане у нас есть не только столбец локал но и пир адрес порта. Клиент и сервер , порт выглядит большое число, с нашей стороны обычный порт 22
+Мы научились смотреть наши сокеты
+
+Конфигурация сети
+oksana@oksana-VirtualBox:~$ ping ya.ru как работает наша сеть, пакет у нас есть
+oksana@oksana-VirtualBox:~$ tracerpath ya.ru маршрут прохождения пакетов, видим местные роуторы, потом можем увидеть наши промежуточные сервера
+oksana@oksana-VirtualBox:~$ host -t a ya.ru  так можем проверить какой айпи адрес у нас установлен
+oksana@oksana-VirtualBox:~$ host -t a ya.ru 8.8.8.8  добавили свой днс сервер
+oksana@oksana-VirtualBox:~$ host -t mx ya.ru 8.8.8.8  для просмотра почты домена
+oksana@oksana-VirtualBox:~$ cat /etc/hosts это простой текстовый файл, где в первом столбце указан айпи адрес и после пробелов идут доменные имена. Этот файл будет перебивать работу вашей стандартной днс системы, которая настроена у вас в системе. 
+Это удобно работать со своим проектом
+oksana@oksana-VirtualBox:~$ resolvectl dns для диагностики проверить текущие активные днс сервера, она покажет состояние тех адресов, которые у нас преобразованы в днс сервера
+
+Фильтрация пакетов (безопасность)
+oksana@oksana-VirtualBox:~ sudo su
+root@oksana-VirtualBox:/home/oksana# iptables -L -nv сейчас по состоянию фильтрации пакетов у нас не настроено
+root@oksana-VirtualBox:/home/oksana# iptables -A INPUT -p tcp --dport=22  -j ACCEPT мы сейчас разрешили ссш трафик
+root @oksana-VirtualBox:/home/oksana# iptables -L -nv у нас появилось правило на разрешение 22 порта
+Этой же командой можем добавить порты 
+root@oksana-VirtualBox:/home/oksana# iptables -A INPUT -p tcp --dport=80  -j ACCEPT
+root @oksana-VirtualBox:/home/oksana# iptables -A INPUT -p tcp --dport=443  -j ACCEPT
+root@oksana-VirtualBox:/home/oksana# iptables -A INPUT -i lo -j ACCEPT
+root@oksana-VirtualBox:/home/oksana# iptables -L -nv мы разрешили трафик на интерфейсе лу бек
+root@oksana-VirtualBox:/home/oksana# iptables -I -m state –state ESTABLISHED,RELATED – j ACCEPT разрешить входящие пакеты от тех соединений, которые установил сервер с другими хостами в сети. Подключает к модулю стэйт, свойства ставят два обозначения, это пакеты которые будут возвращаться к нам с других серверов, к которым будем обращаться
+root@oksana-VirtualBox:/home/oksana# iptables -L -nv посмотрим список правил 
+root@oksana-VirtualBox:/home/oksana# iptables -A INPUT -p icmp -j ACCEPT
+мы разрешили все наши пакеты
+root@oksana-VirtualBox:/home/oksana# iptables -L -nv посмотрим список правил 
+что будет, если ваше соединение у вас разорвется, думайте об этом заранее
+root@oksana-VirtualBox:/home/oksana# iptables -P INPUT DROP устанавливаем политику по умолчанию, если этого наша политика безопасности ссш работает, значит мы не нарушили свое собственное соединени.
+root@oksana-VirtualBox:/home/oksana# iptables -L -nv посмотрим список правил, все правила разрешить статус акцепт, дроп означает сброс пакета без каких-либо действий. 
+Проверка
+root@oksana-VirtualBox:/home/oksana# iptables -L -nv  -t nat
+все правила которые у нас есть временные, правила есть работают, до первой перезагрузки
+нужно сохранить правила
+root@oksana-VirtualBox:/home/oksana# iptables-save > ip.rules
+root@oksana-VirtualBox:/home/oksana# cat ip.rules
+root@oksana-VirtualBox:/home/oksana# iptables-restore < ip.rules считать это файл и восстановить из него все что у нас было, вся наша политика будет сброшена 
+мы можем поставить несколько пакетов, чтобы при загрузке сохранялись автоматически
+root@oksana-VirtualBox:/home/oksana# iptables-persistent netfilter-persistent
+ при установке нам предлагает сохранить файл, мы да сохраняем
+
+дальше устанавливаем сервис, чтобы при загрузки проходило все автоматически
+root@oksana-VirtualBox:/home/oksana# cd /etc/ iptables
+root@oksana-VirtualBox:/ etc/ iptables# ll смотрим видим две сети  в4 и в6
+root@oksana-VirtualBox:/ etc/ iptables# cat rules.v4 почти тоже самое, что было в начале
+
+
+
+Семинар
+IP адрес
+Port дверь куда нужно постучать
+oksana@oksana-VirtualBox:~$ ip это команда позволяет узнать какой у нас айпи адрес, какой у нас интерфейс и тп.
+oksana@oksana-VirtualBox:~$ ip a увидите всю вашу информацию которая у вас доступна
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo интерфейс локальный  кабель
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:92:e8:f7 brd ff:ff:ff:ff:ff:ff
+    inet 127.0.0.1/24 scope host enp0s3
+       valid_lft forever preferred_lft forever
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3 
+       valid_lft 55823sec preferred_lft 55823sec это локальный айпи адрес
+    inet6 fe80::6845:f743:eb85:8b8e/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever айпи адреса которые нам доступны
+основные принципы которые дают нам информацию
+oksana@oksana-VirtualBox:~$ ip addr add 127.0.0.1/255.255.255.0 dev enp0s3 адд это добавление айпи адреса
+oksana@oksana-VirtualBox:~$ !! предыдущая комнада
+oksana@oksana-VirtualBox:~$ sudo !!
+oksana@oksana-VirtualBox:~$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:92:e8:f7 brd ff:ff:ff:ff:ff:ff
+    inet 127.0.0.1/24 scope host enp0s3  добавился
+       valid_lft forever preferred_lft forever
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3
+       valid_lft 54664sec preferred_lft 54664sec
+    inet6 fe80::6845:f743:eb85:8b8e/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+oksana@oksana-VirtualBox:~$ sudo ip addr del 127.0.0.1/255.255.255.0 dev enp0s3 дев это удаление айпи адреса
+oksana@oksana-VirtualBox:~$ ip a посмотрим
+: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:92:e8:f7 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3
+       valid_lft 53153sec preferred_lft 53153sec
+    inet6 fe80::6845:f743:eb85:8b8e/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+oksana@oksana-VirtualBox:~$ ip link set dev enp0s3 down отключить интернет
+oksana@oksana-VirtualBox:~$  sudo !! через судо верхняя команда
+oksana@oksana-VirtualBox:~$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST> mtu 1500 qdisc fq_codel state DOWN group default qlen 1000
+    link/ether 08:00:27:92:e8:f7 brd ff:ff:ff:ff:ff:ff
+oksana@oksana-VirtualBox:~$ sudo ip link set dev enp0s3 up подключить интернет
+oksana@oksana-VirtualBox:~$ ip a посмотреть
+oksana@oksana-VirtualBox:~$ ip r ваш маршрутизатор
+default via 127.0.0.1 dev lo 
+default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100 провод
+169.254.0.0/16 dev enp0s3 scope link metric 1000 через что подключен
+
+Добавить новый машршрут через что будет интернет это все нужно для работы с сервером
+oksana@oksana-VirtualBox:~$ ip route add 169.254.0.0 via 10.0.2.15 добавили маршрут
+oksana@oksana-VirtualBox:~$ sudo !! через судо команда выше
+ksana@oksana-VirtualBox:~$ ip r
+default via 127.0.0.1 dev lo 
+default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100 
+169.254.0.0 via 10.0.2.15 dev enp0s3  прошел через нашу сеть
+169.254.0.0/16 dev enp0s3 scope link metric 1000 
+Можно указывать дополнительные устройства
+oksana@oksana-VirtualBox:~$ sudo ip route del 169.254.0.0 via 10.0.2.15 удалили маршрут
+oksana@oksana-VirtualBox:~$ ip r посмотрели
+default via 127.0.0.1 dev lo 
+default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100 
+169.254.0.0/16 dev enp0s3 scope link metric 1000 
+
+Как пинговать интернет
+oksana@oksana-VirtualBox:~$ ping 8.8.8.8 пингуем айпи адрес гугла 
+остановить Ctrl + c
+oksana@oksana-VirtualBox:~$ ping ya.ru
+oksana@oksana-VirtualBox:~$ traceroute
+oksana@oksana-VirtualBox:~$ sudo apt install inetutils-traceroute
+oksana@oksana-VirtualBox:~$ sudo apt install traceroute
+oksana@oksana-VirtualBox:~$ sudo traceroute ya.ru
+oksana@oksana-VirtualBox:~$ sudo traceroute google.com
+oksana@oksana-VirtualBox:~$ sudo traceroute -I google.com
+oksana@oksana-VirtualBox:~$ sudo traceroute -I ya.ru
+oksana@oksana-VirtualBox:~$ sudo traceroute -p 8 ya.ru
+oksana@oksana-VirtualBox:~$ host ya.ru
+oksana@oksana-VirtualBox:~$ host -t A ya.ru
+oksana@oksana-VirtualBox:~$ host -t MX ya.ru
+oksana@oksana-VirtualBox:~$ host -t MX google.com
+oksana@oksana-VirtualBox:~$ host google.com
+google.com has address 64.233.165.138
+google.com has address 64.233.165.101
+google.com has address 64.233.165.100
+google.com has address 64.233.165.113
+google.com has address 64.233.165.102
+google.com has address 64.233.165.139
+google.com has IPv6 address 2a00:1450:4010:c08::71
+google.com has IPv6 address 2a00:1450:4010:c08::8b
+google.com has IPv6 address 2a00:1450:4010:c08::64
+google.com has IPv6 address 2a00:1450:4010:c08::65
+google.com mail is handled by 10 smtp.google.com.
+oksana@oksana-VirtualBox:~$ host -C google.com
+oksana@oksana-VirtualBox:~$ sudo host -C google.com
+oksana@oksana-VirtualBox:~$ sudo host -C ya.ru
+oksana@oksana-VirtualBox:~$ sudo apt install iptables с помощью него можем запрещать разрешать пакеты, кто-то может подключаться, кто отключаться
+oksana@oksana-VirtualBox:~$ sudo iptables -L нужно для правил, правил нет
+Chain INPUT (policy ACCEPT) к вам подключаются
+target     prot opt source               destination         
+Chain FORWARD (policy ACCEPT) внутри сети
+target     prot opt source               destination        
+Chain OUTPUT (policy ACCEPT) идет отключение
+target     prot opt source               destination     
+когда пытаетесь зайти в яндекс, даете доступ, и вас пускают
+вы можете запретить айпи адресам входить и выходить в вашу систему
+oksana@oksana-VirtualBox:~$ sudo iptables -F удалять правила, если они есть
+oksana@oksana-VirtualBox:~$ sudo iptables -A INPUT -s 10.10.10.0 -j DROP
+ -А куда хотим поставить input куда указываем дальше какие айпи адреса дальше -j дроп или асепт основные команды которые вы можете использовать
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+oksana@oksana-VirtualBox:~$ sudo iptables -L --line-numbers
+oksana@oksana-VirtualBox:~$ sudo iptables -D INPUT 1
+oksana@oksana-VirtualBox:~$ sudo iptables -L --line-numbers
+
+oksana@oksana-VirtualBox:~$ traceroute
+Команда «traceroute» не найдена, но может быть установлена с помощью:
+sudo apt install inetutils-traceroute  # version 2:2.2-2, or
+sudo apt install traceroute            # version 1:2.1.0-2
+oksana@oksana-VirtualBox:~$ sudo apt install inetutils-traceroute 
+[sudo] пароль для oksana: 
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово         
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  blender-data fonts-dejavu fonts-dejavu-extra libaom3 libavutil56
+  libcodec2-1.0 libdav1d5 libgsm1 libllvm13 libmfx1 libshine3 libsnappy1v5
+  libswresample3 libva-drm2 libva-x11-2 libva2 libvdpau1 libx264-163
+  libx265-199 ocl-icd-libopencl1
+Для их удаления используйте «sudo apt autoremove».
+Следующие НОВЫЕ пакеты будут установлены:
+  inetutils-traceroute
+Обновлено 0 пакетов, установлено 1 новых пакетов, для удаления отмечено 0 пакетов, и 32 пакетов не обновлено.
+Необходимо скачать 43,0 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 115 kB.
+Пол:1 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 inetutils-traceroute amd64 2:2.2-2 [43,0 kB]
+Получено 43,0 kB за 5с (8 209 B/s)              
+Выбор ранее не выбранного пакета inetutils-traceroute.
+(Чтение базы данных … на данный момент установлено 190130 файлов и каталогов.)
+Подготовка к распаковке …/inetutils-traceroute_2%3a2.2-2_amd64.deb …
+Распаковывается inetutils-traceroute (2:2.2-2) …
+Настраивается пакет inetutils-traceroute (2:2.2-2) …
+update-alternatives: используется /usr/bin/inetutils-traceroute для предоставлен
+ия /usr/bin/traceroute (traceroute) в автоматическом режиме
+Обрабатываются триггеры для man-db (2.10.2-1) …
+oksana@oksana-VirtualBox:~$ sudo apt install traceroute 
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово         
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  blender-data fonts-dejavu fonts-dejavu-extra libaom3 libavutil56
+  libcodec2-1.0 libdav1d5 libgsm1 libllvm13 libmfx1 libshine3 libsnappy1v5
+  libswresample3 libva-drm2 libva-x11-2 libva2 libvdpau1 libx264-163
+  libx265-199 ocl-icd-libopencl1
+Для их удаления используйте «sudo apt autoremove».
+Следующие НОВЫЕ пакеты будут установлены:
+  traceroute
+Обновлено 0 пакетов, установлено 1 новых пакетов, для удаления отмечено 0 пакетов, и 32 пакетов не обновлено.
+Необходимо скачать 45,4 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 152 kB.
+Пол:1 http://au.archive.ubuntu.com/ubuntu jammy/universe amd64 traceroute amd64 1:2.1.0-2 [45,4 kB]
+Получено 45,4 kB за 2с (29,2 kB/s)        
+Выбор ранее не выбранного пакета traceroute.
+(Чтение базы данных … на данный момент установлено 190139 файлов и каталогов.)
+Подготовка к распаковке …/traceroute_1%3a2.1.0-2_amd64.deb …
+Распаковывается traceroute (1:2.1.0-2) …
+Настраивается пакет traceroute (1:2.1.0-2) …
+update-alternatives: используется /usr/bin/traceroute6.db для предоставления /us
+r/bin/traceroute6 (traceroute6) в автоматическом режиме
+update-alternatives: используется /usr/bin/lft.db для предоставления /usr/bin/lf
+t (lft) в автоматическом режиме
+update-alternatives: используется /usr/bin/traceproto.db для предоставления /usr
+/bin/traceproto (traceproto) в автоматическом режиме
+update-alternatives: используется /usr/sbin/tcptraceroute.db для предоставления 
+/usr/sbin/tcptraceroute (tcptraceroute) в автоматическом режиме
+Обрабатываются триггеры для man-db (2.10.2-1) …
+oksana@oksana-VirtualBox:~$ sudo traceroute ya.ru
+[sudo] пароль для oksana: 
+traceroute to ya.ru (5.255.255.242), 64 hops max
+  1   10.0.2.2  0,479ms  0,235ms  0,221ms 
+  2   *  *  * 
+  3   *  *  * 
+  4   *  *  * 
+  5   *  *  * 
+  6   *  *  * 
+  7   *  *  * 
+  8   *  *  * 
+  9   *  *  * 
+ 10   *  *  * 
+ 11   *  *  * 
+ 12   *  *  * 
+ 13   *  *  * 
+ 14   *  *  * 
+ 15   *  *  * 
+ 16   *  *  * 
+ 17   *  *  * 
+ 18   *  *  * 
+ 19   *  *  * 
+ 20   *  *  * 
+ 21   *  *  * 
+ 22   *  *  * 
+ 23   *  *  * 
+ 24   *  *  * 
+ 25   *  *  * 
+ 26   *  *  * 
+ 27   *  *  * 
+ 28   *  *  * 
+ 29   *  *  * 
+ 30   *  *  * 
+ 31   *  *  * 
+ 32   *  *  * 
+ 33   *  *  * 
+ 34   *  *  * 
+ 35   *  *  * 
+ 36   *  *  * 
+ 37   *  *  * 
+ 38   *  *  * 
+ 39   *  *  * 
+ 40   *  *  * 
+ 41   *  *  * 
+ 42   *  *  * 
+ 43   *  *  * 
+ 44   *  *  * 
+ 45   *  *  * 
+ 46   *  *  * 
+ 47   *  *  * 
+ 48   *  *  * 
+ 49   *  *  * 
+ 50   *  *  * 
+ 51   *  *  * 
+ 52   *  *  * 
+ 53   *  *  * 
+ 54   *  *  * 
+ 55   *  *  * 
+ 56   *  *  * 
+ 57   *  *  * 
+ 58   *  *  * 
+ 59   *  *  * 
+ 60   *  *  * 
+ 61   *  *  * 
+ 62   *  *  * 
+ 63   *  *  * 
+ 64   *  *  * 
+oksana@oksana-VirtualBox:~$ sudo traceroute google.com
+[sudo] пароль для oksana: 
+traceroute to google.com (173.194.222.101), 64 hops max
+  1   10.0.2.2  0,446ms  0,578ms  0,578ms 
+  2   *  *  * 
+  3   *  *  * 
+  4   *  *  * 
+  5   *  *  * 
+  6   *  *  * 
+  7   *  *  * 
+  8   *  *  * 
+  9   *  *  * 
+ 10   *  *  * 
+ 11   *  *  * 
+ 12   *  *  * 
+ 13   *  *  * 
+ 14   *  *  * 
+ 15   *  *  * 
+ 16   *  *  * 
+ 17   *  *  * 
+ 18   *  *  * 
+ 19   *  *  * 
+ 20   *  *  * 
+ 21   *  *  * 
+ 22   *  *  * 
+^C
+oksana@oksana-VirtualBox:~$ sudo traceroute -I google.com
+traceroute to google.com (142.250.150.113), 64 hops max
+  1   10.0.2.2  0,027ms  0,013ms  0,011ms 
+  2   192.168.1.1  31,423ms  4,197ms  3,971ms 
+  3   10.4.0.1  21,318ms  6,924ms  6,078ms 
+  4   172.28.131.8  5,658ms  5,844ms  5,612ms 
+  5   *  *  * 
+  6   188.43.240.22  6,422ms  15,971ms  5,414ms 
+  7   217.150.55.234  33,444ms  28,396ms  43,081ms 
+  8   188.43.10.141  20,533ms  17,062ms  16,829ms 
+  9   108.170.250.51  17,621ms  18,616ms  17,430ms 
+ 10   142.251.49.158  28,747ms  29,840ms  37,960ms 
+ 11   216.239.43.20  29,961ms  33,108ms  31,247ms 
+ 12   142.250.232.179  36,711ms  31,605ms  32,403ms 
+ 13   *  *  * 
+ 14   *  *  * 
+ 15   *  *  * 
+^C
+oksana@oksana-VirtualBox:~$ sudo traceroute -I ya.ru
+traceroute to ya.ru (5.255.255.242), 64 hops max
+  1   10.0.2.2  0,329ms  0,234ms  0,211ms 
+  2   192.168.1.1  12,456ms  4,505ms  8,793ms 
+  3   10.4.0.1  7,621ms  5,507ms  6,670ms 
+  4   172.28.131.8  4,700ms  5,091ms  22,267ms 
+  5   *  *  * 
+  6   195.208.208.116  19,954ms  32,214ms  51,525ms 
+  7   *  87.250.239.207  31,491ms  17,243ms 
+  8   *  10.1.6.1  40,404ms  23,457ms 
+  9   5.255.255.242  20,045ms  26,826ms  18,757ms 
+oksana@oksana-VirtualBox:~$ sudo traceroute -p 8 ya.ru
+traceroute to ya.ru (5.255.255.242), 64 hops max
+  1   10.0.2.2  4,325ms  0,376ms  0,265ms 
+  2   *  *  * 
+  3   *  *  * 
+  4   *  * ^C
+oksana@oksana-VirtualBox:~$ host ya.ru
+ya.ru has address 77.88.55.242
+ya.ru has address 5.255.255.242
+ya.ru has IPv6 address 2a02:6b8::2:242
+ya.ru mail is handled by 10 mx.yandex.ru.
+oksana@oksana-VirtualBox:~$ host -t A ya.ru
+ya.ru has address 5.255.255.242
+ya.ru has address 77.88.55.242
+oksana@oksana-VirtualBox:~$ host -t MX ya.ru
+ya.ru mail is handled by 10 mx.yandex.ru.
+oksana@oksana-VirtualBox:~$ host -t A google.com
+google.com has address 173.194.222.113
+google.com has address 173.194.222.102
+google.com has address 173.194.222.139
+google.com has address 173.194.222.138
+google.com has address 173.194.222.101
+google.com has address 173.194.222.100
+oksana@oksana-VirtualBox:~$ host -t MX google.com
+google.com mail is handled by 10 smtp.google.com.
+oksana@oksana-VirtualBox:~$ host google.com
+google.com has address 64.233.165.138
+google.com has address 64.233.165.101
+google.com has address 64.233.165.100
+google.com has address 64.233.165.113
+google.com has address 64.233.165.102
+google.com has address 64.233.165.139
+google.com has IPv6 address 2a00:1450:4010:c08::71
+google.com has IPv6 address 2a00:1450:4010:c08::8b
+google.com has IPv6 address 2a00:1450:4010:c08::64
+google.com has IPv6 address 2a00:1450:4010:c08::65
+google.com mail is handled by 10 smtp.google.com.
+oksana@oksana-VirtualBox:~$ host -C google.com
+oksana@oksana-VirtualBox:~$ host -C google.com
+oksana@oksana-VirtualBox:~$ sudo host -C google.com
+[sudo] пароль для oksana: 
+Nameserver 216.239.38.10:
+	google.com has SOA record ns1.google.com. dns-admin.google.com. 510633651 900 900 1800 60
+oksana@oksana-VirtualBox:~$ sudo host -C ya.r
+oksana@oksana-VirtualBox:~$ sudo apt install iptables
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово         
+Уже установлен пакет iptables самой новой версии (1.8.7-1ubuntu5).
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  blender-data fonts-dejavu fonts-dejavu-extra libaom3 libavutil56
+  libcodec2-1.0 libdav1d5 libgsm1 libllvm13 libmfx1 libshine3 libsnappy1v5
+  libswresample3 libva-drm2 libva-x11-2 libva2 libvdpau1 libx264-163
+  libx265-199 ocl-icd-libopencl1
+Для их удаления используйте «sudo apt autoremove».
+Обновлено 0 пакетов, установлено 0 новых пакетов, для удаления отмечено 0 пакетов, и 32 пакетов не обновлено.
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+oksana@oksana-VirtualBox:~$ ^C
+oksana@oksana-VirtualBox:~$ sudo iptables -F
+oksana@oksana-VirtualBox:~$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:92:e8:f7 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3
+       valid_lft 77996sec preferred_lft 77996sec
+    inet6 fe80::6845:f743:eb85:8b8e/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+oksana@oksana-VirtualBox:~$ sudo iptables -A INPUT -s 10.10.10.0 -j DROP
+[sudo] пароль для oksana: 
+oksana@oksana-VirtualBox:~$ sudo iptables -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+DROP       all  --  10.10.10.0           anywhere            
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+oksana@oksana-VirtualBox:~$ ^C
+oksana@oksana-VirtualBox:~$ sudo iptables -L --line-numbers
+Chain INPUT (policy ACCEPT)
+num  target     prot opt source               destination         
+1    DROP       all  --  10.10.10.0           anywhere            
+Chain FORWARD (policy ACCEPT)
+num  target     prot opt source               destination         
+Chain OUTPUT (policy ACCEPT)
+num  target     prot opt source               destination         
+oksana@oksana-VirtualBox:~$ sudo iptables -D INPUT 1
+oksana@oksana-VirtualBox:~$ sudo iptables -L --line-numbers
+Chain INPUT (policy ACCEPT)
+num  target     prot opt source               destination         
+Chain FORWARD (policy ACCEPT)
+num  target     prot opt source               destination         
+Chain OUTPUT (policy ACCEPT)
+num  target     prot opt source               destination         
+oksana@oksana-VirtualBox:~$ 
+
+  316  sudo apt autoremove
+
+  317  sudo apt update
+
+  318  sudo apt upgrade
+
+  319  snap install gimp
+
+  320  sudo snap install gimp
+
+  321  snap remove gimp
+
+  322  sudo snap remove gimp
+
+  323  history
+
+  324  sudo add-apt-repository ppa:ondrey/php
+
+  325  add-apt-repository ppa:ondrey/php
+
+  326  sudo add-apt-repository ppa:ondrej/php
+
+  327  sudo add-apt-repository http://nginx.org/ru/linux_packages.html
+
+  328  sudo add-apt-repository --list
+
+  329  nginx
+
+  330  wget https://download.virtualbox.org/virtualbox/7.0.4/virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+
+  331  ll
+
+  332  dpkg -i virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+
+  333  sudo su
+
+  334  sudo add-apt-repository --remove ppa:thomas-schiex/blender
+
+  335  tracepath ya.ru
+
+  336  ip a
+
+  337  sudo iptables -L
+
+  338  tracepath ya.ru
+
+  339  cd /etc/sudoers:55:5
+
+  340  cd /etc
+
+  341  ll
+
+  342  cd /etc/sudoers
+
+  343  cd /etc/sudoers/
+
+  344  cat sudoers
+
+  345  sudo cat sudoers
+
+  346  sudo nano sudoers
+
+  347  sudo cat sudoers
+
+  348  cat sudoers
+
+  349  sudo cat sudoers
+
+  350  cd ..
+
+  351  history
+
+  352  ip a
+
+  353  ll
+
+  354  cd /etc
+
+  355  ll
+
+  356  cd
+
+  357  sudo su
+
+  358  ip i
+
+  359  sudo traceroute -l domain.name
+
+  360  sudo traceroute -I ya.ru
+
+  361  history
+
+  362  sudo su
+
+  363  apt-get install iptables
+
+  364  sudo apt-get install iptables
+
+  365  ip
+
+  366  ip a
+
+  367  ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+
+  368  sudo ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+
+  369  ip a
+
+  370  sudo ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+
+  371  ip a
+
+  372  sudo ip addr del 127.0.0.1/255.255.255.0 dev enp0s3
+
+  373  ip a
+
+  374  ip link set dev enp0s3 down
+
+  375  sudo ip link set dev enp0s3 down
+
+  376  ip a
+
+  377  sudo ip link set dev enp0s3 up
+
+  378  ip a
+
+  379  ip r
+
+  380  ip route add 169.254.0.0 via 10.0.2.15
+
+  381  sudo ip route add 169.254.0.0 via 10.0.2.15
+
+  382  ip r
+
+  383  sudo ip route del 169.254.0.0 via 10.0.2.15
+
+  384  ip r
+
+  385  ping 8.8.8.8
+
+  386  ping ya.ru
+
+  387  traceroute
+
+  388  sudo apt install inetutils-traceroute
+
+  389  sudo apt install traceroute
+
+  390  --fix-missing
+
+  391  apt-get update --fix-missing
+
+  392  sudo apt-get update --fix-missing
+
+  393  sudo traceroute ya.ru
+
+  394  sudo apt install inetutils-traceroute  # version 2:2.2-2
+
+  395  sudo apt-get install traceroute
+
+  396  apt-get update
+
+  397  sudo apt-get install traceroute --fix-missing
+
+  398  sudo apt-get update
+
+  399  sudo apt-get install traceroute
+
+  400  --fix-missing
+
+  401  traceroute debian.org
+
+  402  sudo apt install inetutils-traceroute  # version 2:2.2-2
+
+  403  sudo apt update && sudo apt full-upgrade -y
+
+  404  traceroute
+
+  405  sudo apt install inetutils-traceroute 
+
+  406  sudo apt install traceroute 
+
+  407  sudo traceroute ya.ru
+
+  408  sudo traceroute google.com
+
+  409  sudo traceroute -I google.com
+
+  410  sudo traceroute -I ya.ru
+
+  411  sudo traceroute -p 8 ya.ru
+
+  412  host ya.ru
+
+  413  host -t A ya.ru
+
+  414  host -t MX ya.ru
+
+  415  host -t A google.com
+
+  416  host -t MX google.com
+
+  417  host google.com
+
+  418  host -C google.com
+
+  419  sudo host -C google.com
+
+  420  sudo host -C ya.ru
+
+  421  sudo apt install iptables
+
+  422  sudo iptables -L
+
+  423  sudo iptables -F
+
+  424  ip a
+
+  425* 
+
+  426  sudo iptables -L
+
+  427  sudo iptables -L --line-numbers
+
+  428  sudo iptables -D INPUT 1
+
+  429  sudo iptables -L --line-numbers
+
+  430  history
+
+oksana@oksana-VirtualBox:~$ 
+
+
+ДЗ 5 команды
+404  ip link set enp0s3 up
+
+  405  sudo ip link set enp0s3 up
+
+  406  ip a
+
+  407  ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+
+  408  ip a
+
+  409  sudo ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+
+  410  ip a
+
+  411  sudo ip route add default via 127.0.0.1
+
+  412  ip a
+
+  413  ping ya.ru
+
+  414  sudo ping ya.ru
+
+  415  sudo traceroute ya.ru
+
+  416  ip a
+
+  417  ip r
+
+  418  ping 8.8.8.8 
+
+  419  ping ya.ru
+
+  420  history
+
+  421  sudo iptables -L 
+
+  422  iptables -A INPUT -p tcp --dport=22 -j ACCEPT
+
+  423  sudo iptables -A INPUT -p tcp --dport=22 -j ACCEPT
+
+  424  sudo iptables -L 
+
+  425  iptables -A INPUT -p tcp --dport=80 -j ACCEPT
+
+  426  sudo iptables -A INPUT -p tcp --dport=80 -j ACCEPT
+
+  427  sudo iptables -L 
+
+  428  iptables -A INPUT -p tcp --dport=443 -j ACCEPT
+
+  429  sudo iptables -A INPUT -p tcp --dport=443 -j ACCEPT
+
+  430  sudo iptables -L 
+
+  431  iptables -t filter -A INPUT -s ubuntu.com -j ACCEPT
+
+  432  sudo iptables -t filter -A INPUT -s ubuntu.com -j ACCEPT
+
+  433  iptables -h
+
+  434  sudo iptables -L 
+
+  435  iptables -P INPUT DROP
+
+  436  sudo iptables -P INPUT DROP
+
+  437  sudo iptables -L 
+
+  438  ip a
+
+  439  ip r
+
+  440  history
+
+  441  iptables -t filter -A INPUT -s 3.4.5.6 -j DROP
+
+  442  sudo iptables -t filter -A INPUT -s 3.4.5.6 -j DROP
+
+  443  sudo iptables -L 
+
+  444  mkdir /etc/iptables-conf/
+
+  445  sudo mkdir /etc/iptables-conf/
+
+  446  iptables-save -f /etc/iptables-conf/iptables_rules.ipv4
+
+  447  sudo iptables-save -f /etc/iptables-conf/iptables_rules.ipv4
+
+  448  ll
+
+  449  sudo iptables -L 
+
+  450  history
+
+oksana@oksana-VirtualBox:~$ 
+
+
+
+
+
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+[sudo] пароль для oksana: 
+
+Chain INPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+oksana@oksana-VirtualBox:~$ iptables -A INPUT -p tcp --dport=22 -j ACCEPT
+
+iptables v1.8.7 (nf_tables): unknown option "--dport=22"
+
+Try `iptables -h' or 'iptables --help' for more information.
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo iptables -A INPUT -p tcp --dport=22 -j ACCEPT
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+Chain INPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+oksana@oksana-VirtualBox:~$ iptables -A INPUT -p tcp --dport=80 -j ACCEPT
+
+iptables v1.8.7 (nf_tables): unknown option "--dport=80"
+
+Try `iptables -h' or 'iptables --help' for more information.
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo iptables -A INPUT -p tcp --dport=80 -j ACCEPT
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+Chain INPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:http
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+oksana@oksana-VirtualBox:~$ iptables -A INPUT -p tcp --dport=443 -j ACCEPT
+
+iptables v1.8.7 (nf_tables): unknown option "--dport=443"
+
+Try `iptables -h' or 'iptables --help' for more information.
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo iptables -A INPUT -p tcp --dport=443 -j ACCEPT
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+Chain INPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:http
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:https
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+oksana@oksana-VirtualBox:~$ iptables -t filter -A INPUT -s ubuntu.com -j ACCEPT
+
+iptables v1.8.7 (nf_tables): host/network `ubuntu.com' not found
+
+Try `iptables -h' or 'iptables --help' for more information.
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo iptables -t filter -A INPUT -s ubuntu.com -j ACCEPT
+
+iptables v1.8.7 (nf_tables): host/network `ubuntu.com' not found
+
+Try `iptables -h' or 'iptables --help' for more information.
+
+oksana@oksana-VirtualBox:~$ iptables -h
+
+iptables v1.8.7
+
+
+
+Usage: iptables -[ACD] chain rule-specification [options]
+
+	iptables -I chain [rulenum] rule-specification [options]
+
+	iptables -R chain rulenum rule-specification [options]
+
+	iptables -D chain rulenum [options]
+
+	iptables -[LS] [chain [rulenum]] [options]
+
+	iptables -[FZ] [chain] [options]
+
+	iptables -[NX] chain
+
+	iptables -E old-chain-name new-chain-name
+
+	iptables -P chain target [options]
+
+	iptables -h (print this help information)
+
+
+
+Commands:
+
+Either long or short options are allowed.
+
+  --append  -A chain		Append to chain
+
+  --check   -C chain		Check for the existence of a rule
+
+  --delete  -D chain		Delete matching rule from chain
+
+  --delete  -D chain rulenum
+
+				Delete rule rulenum (1 = first) from chain
+
+  --insert  -I chain [rulenum]
+
+				Insert in chain as rulenum (default 1=first)
+
+  --replace -R chain rulenum
+
+				Replace rule rulenum (1 = first) in chain
+
+  --list    -L [chain [rulenum]]
+
+				List the rules in a chain or all chains
+
+  --list-rules -S [chain [rulenum]]
+
+				Print the rules in a chain or all chains
+
+  --flush   -F [chain]		Delete all rules in  chain or all chains
+
+  --zero    -Z [chain [rulenum]]
+
+				Zero counters in chain or all chains
+
+  --new     -N chain		Create a new user-defined chain
+
+  --delete-chain
+
+	     -X [chain]		Delete a user-defined chain
+
+  --policy  -P chain target
+
+				Change policy on chain to target
+
+  --rename-chain
+
+	     -E old-chain new-chain
+
+				Change chain name, (moving any references)
+
+Options:
+
+    --ipv4	-4		Nothing (line is ignored by ip6tables-restore)
+
+    --ipv6	-6		Error (line is ignored by iptables-restore)
+
+[!] --proto	-p proto	protocol: by number or name, eg. `tcp'
+
+[!] --source	-s address[/mask][...]
+
+				source specification
+
+[!] --destination -d address[/mask][...]
+
+				destination specification
+
+[!] --in-interface -i input name[+]
+
+				network interface name ([+] for wildcard)
+
+ --jump	-j target
+
+				target for rule (may load target extension)
+
+  --goto      -g chain
+
+			       jump to chain with no return
+
+  --match	-m match
+
+				extended match (may load extension)
+
+  --numeric	-n		numeric output of addresses and ports
+
+[!] --out-interface -o output name[+]
+
+				network interface name ([+] for wildcard)
+
+  --table	-t table	table to manipulate (default: `filter')
+
+  --verbose	-v		verbose mode
+
+  --wait	-w [seconds]	maximum wait to acquire xtables lock before give up
+
+  --wait-interval -W [usecs]	wait time to try to acquire xtables lock
+
+				default is 1 second
+
+  --line-numbers		print line numbers when listing
+
+  --exact	-x		expand numbers (display exact values)
+
+[!] --fragment	-f		match second or further fragments only
+
+  --modprobe=<command>		try to insert modules using this command
+
+  --set-counters PKTS BYTES	set the counter during insert/append
+
+[!] --version	-V		print package version.
+
+iptables v1.8.7 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+Chain INPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:http
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:https
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+oksana@oksana-VirtualBox:~$ iptables -P INPUT DROP
+
+iptables v1.8.7 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo iptables -P INPUT DROP
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+Chain INPUT (policy DROP)
+
+target     prot opt source               destination         
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:http
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:https
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+oksana@oksana-VirtualBox:~$ ip a
+
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+
+    inet 127.0.0.1/8 scope host lo
+
+       valid_lft forever preferred_lft forever
+
+    inet6 ::1/128 scope host 
+
+       valid_lft forever preferred_lft forever
+
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+
+    link/ether 08:00:27:92:e8:f7 brd ff:ff:ff:ff:ff:ff
+
+    inet 127.0.0.1/24 scope host enp0s3
+
+       valid_lft forever preferred_lft forever
+
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3
+
+       valid_lft 69439sec preferred_lft 69439sec
+
+    inet6 fe80::6845:f743:eb85:8b8e/64 scope link noprefixroute 
+
+       valid_lft forever preferred_lft forever
+
+oksana@oksana-VirtualBox:~$ ip r
+
+default via 127.0.0.1 dev lo 
+
+default via 10.0.2.2 dev enp0s3 proto dhcp metric 20100 
+
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100 
+
+127.0.0.0/24 dev enp0s3 proto kernel scope link src 127.0.0.1 
+
+169.254.0.0/16 dev enp0s3 scope link metric 1000 
+oksana@oksana-VirtualBox:~$ iptables -t filter -A INPUT -s 3.4.5.6 -j DROP
+
+iptables v1.8.7 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo iptables -t filter -A INPUT -s 3.4.5.6 -j DROP
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+Chain INPUT (policy DROP)
+
+target     prot opt source               destination         
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:http
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:https
+
+DROP       all  --  3.4.5.6              anywhere            
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination         
+
+oksana@oksana-VirtualBox:~$ mkdir /etc/iptables-conf/
+
+mkdir: невозможно создать каталог «/etc/iptables-conf/»: Отказано в доступе
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo mkdir /etc/iptables-conf/
+
+oksana@oksana-VirtualBox:~$ iptables-save -f /etc/iptables-conf/iptables_rules.ipv4
+
+Failed to open file, error: Permission denied
+
+oksana@oksana-VirtualBox:~$ sudo !!
+
+sudo iptables-save -f /etc/iptables-conf/iptables_rules.ipv4
+
+oksana@oksana-VirtualBox:~$ ll
+
+итого 90256
+
+drwxr-x--- 21 oksana   oksana       4096 фев 19 19:04  ./
+
+drwxr-xr-x  9 root     root         4096 фев 15 14:15  ../
+
+drwxrwxr-x  3 oksana   oksana       4096 фев  7 10:13  1/
+
+-rw-------  1 oksana   oksana       5716 фев 19 18:20  .bash_history
+
+-rw-r--r--  1 oksana   oksana        220 фев  5 21:54  .bash_logout
+
+-rw-r--r--  1 oksana   oksana       3771 фев  5 21:54  .bashrc
+
+drwx------ 15 oksana   oksana       4096 фев 16 22:48  .cache/
+
+drwx------ 15 oksana   oksana       4096 фев 16 22:49  .config/
+
+-rw-rw-r--  1 oksana   oksana          0 фев 15 02:11  file1
+
+-rw-------  1 oksana   oksana         42 фев 15 02:11  file2
+
+-rw-------  1 oksana   oksana         31 фев 18 16:40  .lesshst
+
+drwx------  3 oksana   oksana       4096 фев  5 23:13  .local/
+
+drwxrwxr-x  2 oksana   oksana       4096 фев 14 17:05  mac/
+
+lrwxrwxrwx  1 oksana   oksana          5 фев  7 20:28  newfile -> test3/
+
+-rw-r--r--  1 oksana   oksana        306 фев  5 23:36  .pam_environment
+
+drwx------  3 oksana   oksana       4096 фев 16 22:48  .pki/
+
+-rw-r--r--  1 oksana   oksana        807 фев  5 21:54  .profile
+
+-rw-rw-r--  1 oksana   oksana         66 фев  8 21:11  .selected_editor
+
+drwxrwx---  1 root     vboxsf      32768 фев 18 19:33  shared/
+
+drwx------  4 oksana   oksana       4096 фев  5 23:25  snap/
+
+-rw-r--r--  1 oksana   oksana          0 фев  6 09:49  .sudo_as_admin_successful
+
+drwxrwsrwx  2 testuser www-data     4096 фев 13 20:09  test3/
+
+d-w--w----  2 oksana   newgroup     4096 фев 14 00:44  test5/
+
+drwxrwxr-x 13 oksana   oksana       4096 фев  8 21:59  test_one/
+
+-rw-r-----  1 oksana   oksana          5 фев 19 19:04  .vboxclient-clipboard.pid
+
+-rw-r-----  1 oksana   oksana          5 фев 19 19:04  .vboxclient-draganddrop.pid
+
+-rw-r-----  1 oksana   oksana          5 фев 19 19:04  .vboxclient-seamless.pid
+
+-rw-r-----  1 oksana   oksana          5 фев 19 19:04  .vboxclient-vmsvga-session-tty2.pid
+
+-rw-------  1 oksana   oksana       2519 фев 14 02:18  .viminfo
+
+-rw-rw-r--  1 oksana   oksana   92244420 ноя 17 21:48  virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+
+drwxr-xr-x  2 oksana   oksana       4096 фев  5 23:13  Видео/
+
+drwxr-xr-x  2 oksana   oksana       4096 фев  5 23:13  Документы/
+
+drwxr-xr-x  4 oksana   oksana       4096 фев 18 16:33  Загрузки/
+
+drwxr-xr-x  3 oksana   oksana       4096 фев  6 16:15  Изображения/
+
+drwxr-xr-x  2 oksana   oksana       4096 фев  5 23:13  Музыка/
+
+drwxr-xr-x  2 oksana   oksana       4096 фев  5 23:13  Общедоступные/
+
+drwxr-xr-x  2 oksana   oksana       4096 фев  5 23:13 'Рабочий стол'/
+
+drwxr-xr-x  2 oksana   oksana       4096 фев  5 23:13  Шаблоны/
+
+oksana@oksana-VirtualBox:~$ sudo iptables -L 
+
+Chain INPUT (policy DROP)
+
+target     prot opt source               destination         
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:http
+
+ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:https
+
+DROP       all  --  3.4.5.6              anywhere            
+
+
+
+Chain FORWARD (policy ACCEPT)
+
+target     prot opt source               destination         
+
+
+
+Chain OUTPUT (policy ACCEPT)
+
+target     prot opt source               destination
+
+
+
+
+
