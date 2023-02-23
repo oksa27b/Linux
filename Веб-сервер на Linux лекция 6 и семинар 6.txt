@@ -1,0 +1,2296 @@
+Урок 6. Веб-сервер на Linux
+Лекция
+curl
+sudo su
+apt install curt
+curl -L http://ya.ru L обозначает переход по редеректам перернаправит на другой протокол или страницу
+на выходе, у нас получилось много кода
+
+защищенный протокол
+установим nginx
+apt install nginx
+теперь надо удостовериться, что наш веб-сервер работает
+ss -ntlp 
+ps afx посмотрим таблицу процессов
+проверим работу nginx по локальному адресу
+curl localhost
+cd /etc/nginx заходим в конфигурацию
+ll 
+расположение директории будет в каталоге /etc/nginx, а вот содержимое может быть разным, надо посмотреть внутри, как на нашей системе работает
+nano nginx.conf в самом начале этого файла мы видим директивы конфигурации на уровне всего nginx. Это пользователи, сколько запущено рабочих процессов, где будет pid файл и первая важная директива include. Здесь все что находится в директории /etc/nginx все файлы будут включены на этом конкретном этапе, на этой строчке. Мы идем в эту директорию, считываем все файлы по этой маске с расширением conf и вставляем содержимое виртуально в это место.
+Почему важно указание места в конфигурационном файле. Дело в том, что каждая директива имеет свой контекст применения, т.е. она должна находиться в конкретном месте конфигурационного файла и в зависимости от этого положения, т.е. от того блока в котором находится директива, она будет по разному действовать, поэтому подключение модулей будет на самом верхнем уровне. Здесь еще  не начинался ни один блок нашей конфигурации. Мы уже подключили модули. Так же мы выставили пользователя от которого будет работать nginx user www-data это уже будет влиять на права доступа которые будет получать веб-сервер. Например какие директории какие файлы он сможет прочитать
+1 блок events здесь указано количество включений, эту директиву можем использовать только в этом блоке, мы не можем перенести куда-то на другой уровень, получим ошибку. Поэтому нужно внимательно читать документацию
+2 блок http все что относится к вебу. Nginx может работать не только с вебом, он может работать как почта, просто как tcp балансировщик, все что мы будем рассматривать будет находиться в этом блоке.  Каждая директива может быть указана несколько раз на разных уровнях.
+Мы не будем рассматривать все директивы которые есть в этом блоке.
+Сохраняем этот конфиг  ctrl+o enter ctrl+x
+Проверить конфигурационный файл
+nginx -t с конфигами все в порядке
+systemctl reload nginx релогим нжныкс
+ps afx посмотрим таблицу процессов
+ll 
+sites-enabled/
+ll
+nano default
+cd /var/www/html
+ll
+cd ~-
+nano default
+
+переходим к веб серверу APACHE
+apt install apache2 устанавливаем пакет
+ps afx таблицу процессов запускаем видим что работает только нжикс, апач не видим 
+ss -ntlp 80 порт занят нжникс, а апач тоже пытается с 80портом запуститься
+apachectl -t видим что синтаксис в порядке, но запустится не может, потому что занят сокет
+systemctl start apache2 у нас ошибка
+systemctl status apache2 посмотрим статус, здесь есть подборка ошибок, которые не дают запуститься апачу
+выходим из статуса q
+cd /etc/apache2 
+nano ports.conf меняем на 8080 листен, альтернативный порт и теперь можем запустить веб сервер апач
+apachectl -t посмотрим конфиг, все ок, есть предупреждение, но это не страшно
+systemctl start apache2 дальше запускаем апач, он запустился, ошибок нет
+systemctl status apache2 мы можем подтвердить это командой статус, все ок говорит команда, для веб сервера желательно иметь статус энейбл
+ps afx дополнительно проверить, посмотреть список процессов, видим два рабочих процесса, все ок
+ss -ntlp проверяем наличие сокета, вот наш сокет 8080, все соответствует конфигурации которую мы настроили
+ll проверим, что наш единственный сайт по умолчанию будет также привязан к этому порту 8080
+cd sites-enabled/
+ll видим наш единственный файл
+nano 000-default.conf здесь стоит подправить конфигурацию, т.к. здесь указано, какому сокету будет принадлежать виртуалхост мы добавляем порт, ставим 8080
+apachectl -t проверяем, тестирование конфигурации
+systemctl reload apache2 дальше делаем релоад нашего сервера
+проверяем работает ли наш веб сервер
+curl localhost:8080 мы получили немного другую страницу, которую нам установил апач, мы можем найти где она у нас находится
+cd /var/www/html 
+ll и видим файл наш, это тот файл, который мы сейчас посмотрели
+curl localhost без порта увидим тот же файл, одна корневая директория у них одна и таже 
+
+На практике настроим схему реверс прокси, где нжникс будет сервер фронтендом, апач будет сервером бекендом. 
+Будем использовать базовые конфигурации, но с использованием браузера будем видеть какие конфигурации отвечают нжних на прямую либо схема с реверс торс.
+Сейчас настроим прогруз портов. Заходим в настройки сети
+Нам потребуется изменить конфигурацию сайта инжикси и  дополним эту конфигурацию
+root@oksana-VirtualBox:/home/oksana# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# cd sites-enabled/ находим наш сайт
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+не забывайте сохранять конфиги куда-нибудь к себе, чтобы можно было к ним вернуться
+##
+# You should look at the following URL's in order to grasp a solid understanding
+# of Nginx configuration files in order to fully unleash the power of Nginx.
+# https://www.nginx.com/resources/wiki/start/
+# https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/
+# https://wiki.debian.org/Nginx/DirectoryStructure
+#
+# In most cases, administrators will remove this file from sites-enabled/ and
+# leave it as reference inside of sites-available where it will continue to be
+# updated by the nginx packaging team.
+#
+# This file will automatically load configuration files provided by other
+# applications, such as Drupal or Wordpress. These applications will be made
+# available underneath a path with that package name, such as /drupal8.
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+# Default server configuration
+#
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        # SSL configuration
+        #
+        # listen 443 ssl default_server;
+        # listen [::]:443 ssl default_server;
+        #
+        # Note: You should disable gzip for SSL traffic.
+        # See: https://bugs.debian.org/773332
+        #
+        # Read up on ssl_ciphers to ensure a secure configuration.
+        # See: https://bugs.debian.org/765782
+        #
+        # Self signed certs generated by the ssl-cert package
+        # Don't use them in a production server!
+        #
+        # include snippets/snakeoil.conf;
+       root /var/www/html;
+
+        # Add index.php to the list if you are using PHP
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name site.ru www.site.ru;
+
+        location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                try_files $uri $uri/ =404;
+        }
+
+        # pass PHP scripts to FastCGI server
+        #
+        #location ~ \.php$ {
+        #       include snippets/fastcgi-php.conf;
+        #
+       root /var/www/html;
+
+        # Add index.php to the list if you are using PHP
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name site.ru www.site.ru;
+
+        location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                try_files $uri $uri/ =404;
+        }
+
+        # pass PHP scripts to FastCGI server
+        #
+        #location ~ \.php$ {
+        #       include snippets/fastcgi-php.conf;
+        #
+# You can move that to a different file under sites-available/ and symlink that
+# to sites-enabled/ to enable it.
+#
+#server {
+#       listen 80;
+#       listen [::]:80;
+#
+#       server_name example.com;
+#
+#       root /var/www/example.com;
+#       index index.html;
+#
+#       location / {
+#               try_files $uri $uri/ =404;
+#       }
+#}
+
+удаляем локейшн и добавляем нашу конфигурацию
+добавили свою конфигурацию сохраняем выходим
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t тестируем синтаксис
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+заходим на нашу страницу, видим картинку
+получилось
+---------------------------------------------------------------
+oksana@oksana-VirtualBox:~$ cd /etc/nginx
+oksana@oksana-VirtualBox:/etc/nginx$ cd
+oksana@oksana-VirtualBox:~$ sudo su
+[sudo] пароль для oksana: 
+root@oksana-VirtualBox:/home/oksana# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# cd sites-enabled/
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: [emerg] unexpected end of file, expecting "}" in /etc/nginx/sites-enabled/default:103
+nginx: configuration file /etc/nginx/nginx.conf test failed
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: [emerg] unexpected end of file, expecting "}" in /etc/nginx/sites-enabled/default:103
+nginx: configuration file /etc/nginx/nginx.conf test failed
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+root@oksana-VirtualBox:/etc/nginx/sites-enabled#
+
+Устанавливаем
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# apt install php8.1 libapache2-mod-php8.1
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# cd /etc/apache2
+root@oksana-VirtualBox:/etc/apache2# ll
+root@oksana-VirtualBox:/etc/apache2# cd mods-enabled
+root@oksana-VirtualBox:/etc/apache2/mods-enabled# ll
+root@oksana-VirtualBox:/etc/apache2/mods-enabled# cat php8.1.conf
+создаем наш файл пшп и проверяем что он работает
+root@oksana-VirtualBox:/etc/apache2/mods-enabled# cd /var/www/html
+root@oksana-VirtualBox:/var/www/html# cat > info.php создаем наш файл пшп
+<?php
+phpinfo();
+?>  
+root@oksana-VirtualBox:/var/www/html# ps afx
+root@oksana-VirtualBox:/var/www/html# ss -ntlp
+root@oksana-VirtualBox:/var/www/html# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# cd sites-enabled/
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+мы зашли по адресу инфо.пшп и получили ошибку 502
+наша конфигурация не польостью настроена
+сервер не отвечает
+502 неработающий бэкенд сервер
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx перезагрузили конфигурацию нжникс
+
+обработка ршр  сервер  зшз-фрм
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# apt install php8.1-fpm устанавливаем пакет
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# cd /etc/php
+root@oksana-VirtualBox:/etc/php# ll 
+root@oksana-VirtualBox:/etc/php# cd 8.1/ это версия
+root@oksana-VirtualBox:/etc/php/8.1# cd fpm/
+root@oksana-VirtualBox:/etc/php/8.1/fpm# ll
+root@oksana-VirtualBox:/etc/php/8.1/fpm# cd pool.d/
+root@oksana-VirtualBox:/etc/php/8.1/fpm/pool.d# ll
+root@oksana-VirtualBox:/etc/php/8.1/fpm/pool.d# nano www.conf
+root@oksana-VirtualBox:/etc/php/8.1/fpm/pool.d# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# cd sites-enabled/
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+убираем коменты на  наш пшп
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t тестируем конфигурацию
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+нужно разблокировать наш локейшн
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+изменяем версию на 8.1 сохраняем
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t проверяем конфигурацию
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+заходим в браузер http://localhost:9080/info.phpдля 
+для завершения 
+MySQL
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# apt install mysql-server-8.0
+устанавливаем
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# ps afx
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# ss -ntlp проверить наш сокет
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# sudo mysql заходим в консоль скюэль
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (1.81 sec)
+
+Перейти в систему базы данных майэскюэль
+mysql> use mysql;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> 
+Список таблиц которые есть в этой базе
+mysql> show tables;
++------------------------------------------------------+
+| Tables_in_mysql                                      |
++------------------------------------------------------+
+| columns_priv                                         |
+| component                                            |
+| db                                                   |
+| default_roles                                        |
+| engine_cost                                          |
+| func                                                 |
+| general_log                                          |
+| global_grants                                        |
+| gtid_executed                                        |
+| help_category                                        |
+| help_keyword                                         |
+| help_relation                                        |
+| help_topic                                           |
+| innodb_index_stats                                   |
+| innodb_table_stats                                   |
+| password_history                                     |
+| plugin                                               |
+| procs_priv                                           |
+| proxies_priv                                         |
+| replication_asynchronous_connection_failover         |
+| replication_asynchronous_connection_failover_managed |
+| replication_group_configuration_version              |
+| replication_group_member_actions                     |
+| role_edges                                           |
+| server_cost                                          |
+| servers                                              |
+| slave_master_info                                    |
+| slave_relay_log_info                                 |
+| slave_worker_info                                    |
+| slow_log                                             |
+| tables_priv                                          |
+| time_zone                                            |
+| time_zone_leap_second                                |
+| time_zone_name                                       |
+| time_zone_transition                                 |
+| time_zone_transition_type                            |
+| user                                                 |
++------------------------------------------------------+
+37 rows in set (0.01 sec)
+
+mysql>
+
+Перейти к таблице юзер
+mysql> SELECT * FROM user; получили неудобно читаемое, чтобы удобно читалось
+mysql> SELECT * FROM user\G
+*************************** 1. row ***************************
+                    Host: localhost
+                    User: debian-sys-maint
+             Select_priv: Y
+             Insert_priv: Y
+             Update_priv: Y
+             Delete_priv: Y
+             Create_priv: Y
+               Drop_priv: Y
+             Reload_priv: Y
+           Shutdown_priv: Y
+            Process_priv: Y
+               File_priv: Y
+              Grant_priv: Y
+         References_priv: Y
+              Index_priv: Y
+              Alter_priv: Y
+            Show_db_priv: Y
+              Super_priv: Y
+   Create_tmp_table_priv: Y
+        Lock_tables_priv: Y
+            Execute_priv: Y
+         Repl_slave_priv: Y
+        Repl_client_priv: Y
+        Create_view_priv: Y
+          Show_view_priv: Y
+     Create_routine_priv: Y
+      Alter_routine_priv: Y
+        Create_user_priv: Y
+              Event_priv: Y
+            Trigger_priv: Y
+  Create_tablespace_priv: Y
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$OO
+V0>Jw\�E#�@Lue79HXzKoLGCC2chYoR0FcC9tO64kS/QSPtdl6/rHHR3/
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:50
+       password_lifetime: NULL
+          account_locked: N
+        Create_role_priv: Y
+          Drop_role_priv: Y
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 2. row ***************************
+                    Host: localhost
+                    User: mysql.infoschema
+             Select_priv: Y
+             Insert_priv: N
+             Update_priv: N
+             Delete_priv: N
+             Create_priv: N
+               Drop_priv: N
+             Reload_priv: N
+           Shutdown_priv: N
+            Process_priv: N
+               File_priv: N
+              Grant_priv: N
+         References_priv: N
+              Index_priv: N
+              Alter_priv: N
+            Show_db_priv: N
+              Super_priv: N
+   Create_tmp_table_priv: N
+        Lock_tables_priv: N
+            Execute_priv: N
+         Repl_slave_priv: N
+        Repl_client_priv: N
+        Create_view_priv: N
+          Show_view_priv: N
+     Create_routine_priv: N
+      Alter_routine_priv: N
+        Create_user_priv: N
+              Event_priv: N
+            Trigger_priv: N
+  Create_tablespace_priv: N
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:43
+       password_lifetime: NULL
+          account_locked: Y
+        Create_role_priv: N
+          Drop_role_priv: N
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 3. row ***************************
+                    Host: localhost
+                    User: mysql.session
+             Select_priv: N
+             Insert_priv: N
+             Update_priv: N
+             Delete_priv: N
+             Create_priv: N
+               Drop_priv: N
+             Reload_priv: N
+           Shutdown_priv: Y
+            Process_priv: N
+               File_priv: N
+              Grant_priv: N
+         References_priv: N
+              Index_priv: N
+              Alter_priv: N
+            Show_db_priv: N
+              Super_priv: Y
+   Create_tmp_table_priv: N
+        Lock_tables_priv: N
+            Execute_priv: N
+         Repl_slave_priv: N
+        Repl_client_priv: N
+        Create_view_priv: N
+          Show_view_priv: N
+     Create_routine_priv: N
+      Alter_routine_priv: N
+        Create_user_priv: N
+              Event_priv: N
+            Trigger_priv: N
+  Create_tablespace_priv: N
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:43
+       password_lifetime: NULL
+          account_locked: Y
+        Create_role_priv: N
+          Drop_role_priv: N
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 4. row ***************************
+                    Host: localhost
+                    User: mysql.sys
+             Select_priv: N
+             Insert_priv: N
+             Update_priv: N
+             Delete_priv: N
+             Create_priv: N
+               Drop_priv: N
+             Reload_priv: N
+           Shutdown_priv: N
+            Process_priv: N
+               File_priv: N
+              Grant_priv: N
+         References_priv: N
+              Index_priv: N
+              Alter_priv: N
+            Show_db_priv: N
+              Super_priv: N
+   Create_tmp_table_priv: N
+        Lock_tables_priv: N
+            Execute_priv: N
+         Repl_slave_priv: N
+        Repl_client_priv: N
+        Create_view_priv: N
+          Show_view_priv: N
+     Create_routine_priv: N
+      Alter_routine_priv: N
+        Create_user_priv: N
+              Event_priv: N
+            Trigger_priv: N
+  Create_tablespace_priv: N
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:43
+       password_lifetime: NULL
+          account_locked: Y
+        Create_role_priv: N
+          Drop_role_priv: N
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 5. row ***************************
+                    Host: localhost
+                    User: root
+             Select_priv: Y
+             Insert_priv: Y
+             Update_priv: Y
+             Delete_priv: Y
+             Create_priv: Y
+               Drop_priv: Y
+             Reload_priv: Y
+           Shutdown_priv: Y
+            Process_priv: Y
+               File_priv: Y
+              Grant_priv: Y
+         References_priv: Y
+              Index_priv: Y
+              Alter_priv: Y
+            Show_db_priv: Y
+              Super_priv: Y
+   Create_tmp_table_priv: Y
+        Lock_tables_priv: Y
+            Execute_priv: Y
+         Repl_slave_priv: Y
+        Repl_client_priv: Y
+        Create_view_priv: Y
+          Show_view_priv: Y
+     Create_routine_priv: Y
+      Alter_routine_priv: Y
+        Create_user_priv: Y
+              Event_priv: Y
+            Trigger_priv: Y
+  Create_tablespace_priv: Y
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: auth_socket
+   authentication_string: 
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:30
+       password_lifetime: NULL
+          account_locked: N
+        Create_role_priv: Y
+          Drop_role_priv: Y
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+5 rows in set (0.00 sec)
+
+mysql>
+
+Создаем новую базу данных
+mysql> CREATE DATABASE oksana;
+создаем таблицу в этой базе данных
+mysql> use oksana;
+Database changed
+mysql> show tables;
+Empty set (0.00 sec)
+mysql> CREATE TABLE test (i INT);
+Query OK, 0 rows affected (0.20 sec)
+
+mysql> INSERT INTO test (i) VALUES (1),(2),(3),(4);
+Query OK, 4 rows affected (0.17 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM test;
++------+
+| i    |
++------+
+|    1 |
+|    2 |
+|    3 |
+|    4 |
++------+
+4 rows in set (0.00 sec)
+
+mysql> exit
+Bye
+root@oksana-VirtualBox:/etc/nginx/sites-enabled#
+
+
+Команды лекции
+oksana@oksana-VirtualBox:~$ cd /etc/nginx
+oksana@oksana-VirtualBox:/etc/nginx$ cd
+oksana@oksana-VirtualBox:~$ sudo su
+[sudo] пароль для oksana: 
+root@oksana-VirtualBox:/home/oksana# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# cd sites-enabled/
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: [emerg] unexpected end of file, expecting "}" in /etc/nginx/sites-enabled/default:103
+nginx: configuration file /etc/nginx/nginx.conf test failed
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: [emerg] unexpected end of file, expecting "}" in /etc/nginx/sites-enabled/default:103
+nginx: configuration file /etc/nginx/nginx.conf test failed
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# apt install php8.1 libapache2-mod-php8.1
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово         
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  blender-data fonts-dejavu fonts-dejavu-extra libaom3 libavutil56
+  libcodec2-1.0 libdav1d5 libgsm1 libllvm13 libmfx1 libshine3 libsnappy1v5
+  libswresample3 libva-drm2 libva-x11-2 libva2 libvdpau1 libx264-163
+  libx265-199 ocl-icd-libopencl1
+Для их удаления используйте «sudo apt autoremove».
+Будут установлены следующие дополнительные пакеты:
+  php-common php8.1-cli php8.1-common php8.1-opcache php8.1-readline
+Предлагаемые пакеты:
+  php-pear
+Следующие НОВЫЕ пакеты будут установлены:
+  libapache2-mod-php8.1 php-common php8.1 php8.1-cli php8.1-common
+  php8.1-opcache php8.1-readline
+Обновлено 0 пакетов, установлено 7 новых пакетов, для удаления отмечено 0 пакетов, и 32 пакетов не обновлено.
+Необходимо скачать 4,761 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 21.0 MB.
+Хотите продолжить? [Д/н] y
+Пол:1 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 php-common all 2:93+ubuntu22.04.1+deb.sury.org+2 [16.6 kB]
+Пол:2 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 php8.1-common amd64 8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1 [712 kB]
+Пол:3 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 php8.1-opcache amd64 8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1 [370 kB]
+Пол:4 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 php8.1-readline amd64 8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1 [13.5 kB]
+Пол:5 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 php8.1-cli amd64 8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1 [1,842 kB]
+Пол:6 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 libapache2-mod-php8.1 amd64 8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1 [1,775 kB]
+Пол:7 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 php8.1 all 8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1 [31.5 kB]
+Получено 4,761 kB за 5с (955 kB/s)
+Выбор ранее не выбранного пакета php-common.
+(Чтение базы данных … на данный момент установлено 190960 файлов и каталогов.)
+Подготовка к распаковке …/0-php-common_2%3a93+ubuntu22.04.1+deb.sury.org+2_all.d
+eb …
+Распаковывается php-common (2:93+ubuntu22.04.1+deb.sury.org+2) …
+Выбор ранее не выбранного пакета php8.1-common.
+Подготовка к распаковке …/1-php8.1-common_8.1.16+repack-1+ubuntu22.04.1+deb.sury
+.org+1_amd64.deb …
+Распаковывается php8.1-common (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+Выбор ранее не выбранного пакета php8.1-opcache.
+Подготовка к распаковке …/2-php8.1-opcache_8.1.16+repack-1+ubuntu22.04.1+deb.sur
+y.org+1_amd64.deb …
+Распаковывается php8.1-opcache (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+Выбор ранее не выбранного пакета php8.1-readline.
+Подготовка к распаковке …/3-php8.1-readline_8.1.16+repack-1+ubuntu22.04.1+deb.su
+ry.org+1_amd64.deb …
+Распаковывается php8.1-readline (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+Выбор ранее не выбранного пакета php8.1-cli.
+Подготовка к распаковке …/4-php8.1-cli_8.1.16+repack-1+ubuntu22.04.1+deb.sury.or
+g+1_amd64.deb …
+Распаковывается php8.1-cli (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+Выбор ранее не выбранного пакета libapache2-mod-php8.1.
+Подготовка к распаковке …/5-libapache2-mod-php8.1_8.1.16+repack-1+ubuntu22.04.1+
+deb.sury.org+1_amd64.deb …
+Распаковывается libapache2-mod-php8.1 (8.1.16+repack-1+ubuntu22.04.1+deb.sury.or
+g+1) …
+Выбор ранее не выбранного пакета php8.1.
+Подготовка к распаковке …/6-php8.1_8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1_
+all.deb …
+Распаковывается php8.1 (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+Настраивается пакет php-common (2:93+ubuntu22.04.1+deb.sury.org+2) …
+Created symlink /etc/systemd/system/timers.target.wants/phpsessionclean.timer → 
+/lib/systemd/system/phpsessionclean.timer.
+Настраивается пакет php8.1-common (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1)
+ …
+
+Creating config file /etc/php/8.1/mods-available/calendar.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/ctype.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/exif.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/fileinfo.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/ffi.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/ftp.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/gettext.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/iconv.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/pdo.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/phar.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/posix.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/shmop.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/sockets.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/sysvmsg.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/sysvsem.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/sysvshm.ini with new version
+
+Creating config file /etc/php/8.1/mods-available/tokenizer.ini with new version
+Настраивается пакет php8.1-readline (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+
+1) …
+
+Creating config file /etc/php/8.1/mods-available/readline.ini with new version
+Настраивается пакет php8.1-opcache (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1
+) …
+
+Creating config file /etc/php/8.1/mods-available/opcache.ini with new version
+Настраивается пакет php8.1-cli (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+update-alternatives: используется /usr/bin/php8.1 для предоставления /usr/bin/ph
+p (php) в автоматическом режиме
+update-alternatives: используется /usr/bin/phar8.1 для предоставления /usr/bin/p
+har (phar) в автоматическом режиме
+update-alternatives: используется /usr/bin/phar.phar8.1 для предоставления /usr/
+bin/phar.phar (phar.phar) в автоматическом режиме
+
+Creating config file /etc/php/8.1/cli/php.ini with new version
+Настраивается пакет libapache2-mod-php8.1 (8.1.16+repack-1+ubuntu22.04.1+deb.sur
+y.org+1) …
+
+Creating config file /etc/php/8.1/apache2/php.ini with new version
+Module mpm_event disabled.
+Enabling module mpm_prefork.
+apache2_switch_mpm Switch to prefork
+apache2_invoke: Enable module php8.1
+Настраивается пакет php8.1 (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+Обрабатываются триггеры для man-db (2.10.2-1) …
+Обрабатываются триггеры для php8.1-cli (8.1.16+repack-1+ubuntu22.04.1+deb.sury.o
+rg+1) …
+Обрабатываются триггеры для libapache2-mod-php8.1 (8.1.16+repack-1+ubuntu22.04.1
++deb.sury.org+1) …
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# cd /etc/apache2
+root@oksana-VirtualBox:/etc/apache2# ll
+итого 96
+drwxr-xr-x   8 root root  4096 Feb 21 23:57 ./
+drwxr-xr-x 135 root root 12288 Feb 22 02:54 ../
+-rw-r--r--   1 root root  7224 Jan 23 21:34 apache2.conf
+drwxr-xr-x   2 root root  4096 Feb 21 22:33 conf-available/
+drwxr-xr-x   2 root root  4096 Feb 21 22:33 conf-enabled/
+-rw-r--r--   1 root root  1782 Sep  8 06:07 envvars
+-rw-r--r--   1 root root 31063 Sep  8 06:07 magic
+drwxr-xr-x   2 root root 12288 Feb 22 02:55 mods-available/
+drwxr-xr-x   2 root root  4096 Feb 22 02:55 mods-enabled/
+-rw-r--r--   1 root root   322 Feb 21 23:57 ports.conf
+drwxr-xr-x   2 root root  4096 Feb 21 22:33 sites-available/
+drwxr-xr-x   2 root root  4096 Feb 22 00:13 sites-enabled/
+root@oksana-VirtualBox:/etc/apache2# ^C
+root@oksana-VirtualBox:/etc/apache2# cd mods-enabled
+root@oksana-VirtualBox:/etc/apache2/mods-enabled# ll
+итого 8
+drwxr-xr-x 2 root root 4096 Feb 22 02:55 ./
+drwxr-xr-x 8 root root 4096 Feb 21 23:57 ../
+lrwxrwxrwx 1 root root   36 Feb 21 22:33 access_compat.load -> ../mods-available/access_compat.load
+lrwxrwxrwx 1 root root   28 Feb 21 22:33 alias.conf -> ../mods-available/alias.conf
+lrwxrwxrwx 1 root root   28 Feb 21 22:33 alias.load -> ../mods-available/alias.load
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 auth_basic.load -> ../mods-available/auth_basic.load
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 authn_core.load -> ../mods-available/authn_core.load
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 authn_file.load -> ../mods-available/authn_file.load
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 authz_core.load -> ../mods-available/authz_core.load
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 authz_host.load -> ../mods-available/authz_host.load
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 authz_user.load -> ../mods-available/authz_user.load
+lrwxrwxrwx 1 root root   32 Feb 21 22:33 autoindex.conf -> ../mods-available/autoindex.conf
+lrwxrwxrwx 1 root root   32 Feb 21 22:33 autoindex.load -> ../mods-available/autoindex.load
+lrwxrwxrwx 1 root root   30 Feb 21 22:33 deflate.conf -> ../mods-available/deflate.conf
+lrwxrwxrwx 1 root root   30 Feb 21 22:33 deflate.load -> ../mods-available/deflate.load
+lrwxrwxrwx 1 root root   26 Feb 21 22:33 dir.conf -> ../mods-available/dir.conf
+lrwxrwxrwx 1 root root   26 Feb 21 22:33 dir.load -> ../mods-available/dir.load
+lrwxrwxrwx 1 root root   26 Feb 21 22:33 env.load -> ../mods-available/env.load
+lrwxrwxrwx 1 root root   29 Feb 21 22:33 filter.load -> ../mods-available/filter.load
+lrwxrwxrwx 1 root root   27 Feb 21 22:33 mime.conf -> ../mods-available/mime.conf
+lrwxrwxrwx 1 root root   27 Feb 21 22:33 mime.load -> ../mods-available/mime.load
+lrwxrwxrwx 1 root root   34 Feb 22 02:55 mpm_prefork.conf -> ../mods-available/mpm_prefork.conf
+lrwxrwxrwx 1 root root   34 Feb 22 02:55 mpm_prefork.load -> ../mods-available/mpm_prefork.load
+lrwxrwxrwx 1 root root   34 Feb 21 22:33 negotiation.conf -> ../mods-available/negotiation.conf
+lrwxrwxrwx 1 root root   34 Feb 21 22:33 negotiation.load -> ../mods-available/negotiation.load
+lrwxrwxrwx 1 root root   29 Feb 22 02:55 php8.1.conf -> ../mods-available/php8.1.conf
+lrwxrwxrwx 1 root root   29 Feb 22 02:55 php8.1.load -> ../mods-available/php8.1.load
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 reqtimeout.conf -> ../mods-available/reqtimeout.conf
+lrwxrwxrwx 1 root root   33 Feb 21 22:33 reqtimeout.load -> ../mods-available/reqtimeout.load
+lrwxrwxrwx 1 root root   31 Feb 21 22:33 setenvif.conf -> ../mods-available/setenvif.conf
+lrwxrwxrwx 1 root root   31 Feb 21 22:33 setenvif.load -> ../mods-available/setenvif.load
+lrwxrwxrwx 1 root root   29 Feb 21 22:33 status.conf -> ../mods-available/status.conf
+lrwxrwxrwx 1 root root   29 Feb 21 22:33 status.load -> ../mods-available/status.load
+root@oksana-VirtualBox:/etc/apache2/mods-enabled# cat php8.1.conf
+# Using (?:pattern) instead of (pattern) is a small optimization that
+# avoid capturing the matching pattern (as $1) which isn't used here
+<FilesMatch ".+\.ph(?:ar|p|tml)$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+<FilesMatch ".+\.phps$">
+    SetHandler application/x-httpd-php-source
+    # Deny access to raw php sources by default
+    # To re-enable it's recommended to enable access to the files
+    # only in specific virtual host or directory
+    Require all denied
+</FilesMatch>
+# Deny access to files without filename (e.g. '.php')
+<FilesMatch "^\.ph(?:ar|p|ps|tml)$">
+    Require all denied
+</FilesMatch>
+
+# Running PHP scripts in user directories is disabled by default
+# 
+# To re-enable PHP in user directories comment the following lines
+# (from <IfModule ...> to </IfModule>.) Do NOT set it to On as it
+# prevents .htaccess files from disabling it.
+<IfModule mod_userdir.c>
+    <Directory /home/*/public_html>
+        php_admin_flag engine Off
+    </Directory>
+</IfModule>
+root@oksana-VirtualBox:/etc/apache2/mods-enabled# cd /var/www/html
+root@oksana-VirtualBox:/var/www/html# cat > info.php
+</php
+phpinfo();
+?>    
+^C
+root@oksana-VirtualBox:/var/www/html# nano info.php
+root@oksana-VirtualBox:/var/www/html# nano info.php
+root@oksana-VirtualBox:/var/www/html# ps afx
+    PID TTY      STAT   TIME COMMAND
+      2 ?        S      0:00 [kthreadd]
+      3 ?        I<     0:00  \_ [rcu_gp]
+      4 ?        I<     0:00  \_ [rcu_par_gp]
+      5 ?        I<     0:00  \_ [slub_flushwq]
+      6 ?        I<     0:00  \_ [netns]
+      8 ?        I<     0:00  \_ [kworker/0:0H-events_highpri]
+     10 ?        I<     0:00  \_ [mm_percpu_wq]
+     11 ?        I      0:00  \_ [rcu_tasks_kthread]
+     12 ?        I      0:00  \_ [rcu_tasks_rude_kthread]
+     13 ?        I      0:00  \_ [rcu_tasks_trace_kthread]
+     14 ?        S      0:03  \_ [ksoftirqd/0]
+     15 ?        I      0:06  \_ [rcu_preempt]
+     16 ?        S      0:00  \_ [migration/0]
+     17 ?        S      0:00  \_ [idle_inject/0]
+     19 ?        S      0:00  \_ [cpuhp/0]
+     20 ?        S      0:00  \_ [kdevtmpfs]
+     21 ?        I<     0:00  \_ [inet_frag_wq]
+     22 ?        S      0:00  \_ [kauditd]
+     23 ?        S      0:00  \_ [khungtaskd]
+     25 ?        S      0:00  \_ [oom_reaper]
+     26 ?        I<     0:00  \_ [writeback]
+     28 ?        S      0:01  \_ [kcompactd0]
+     29 ?        SN     0:00  \_ [ksmd]
+     30 ?        SN     0:00  \_ [khugepaged]
+     31 ?        I<     0:00  \_ [kintegrityd]
+     32 ?        I<     0:00  \_ [kblockd]
+     33 ?        I<     0:00  \_ [blkcg_punt_bio]
+     34 ?        I<     0:00  \_ [tpm_dev_wq]
+     35 ?        I<     0:00  \_ [ata_sff]
+     36 ?        I<     0:00  \_ [md]
+     37 ?        I<     0:00  \_ [edac-poller]
+     38 ?        I<     0:00  \_ [devfreq_wq]
+     39 ?        S      0:00  \_ [watchdogd]
+     40 ?        I<     0:09  \_ [kworker/0:1H-kblockd]
+     41 ?        S      0:16  \_ [kswapd0]
+     42 ?        S      0:00  \_ [ecryptfs-kthread]
+     49 ?        I<     0:00  \_ [kthrotld]
+     53 ?        I<     0:00  \_ [acpi_thermal_pm]
+     54 ?        S      0:00  \_ [xenbus_probe]
+     55 ?        S      0:00  \_ [scsi_eh_0]
+     56 ?        I<     0:00  \_ [scsi_tmf_0]
+     57 ?        S      0:00  \_ [scsi_eh_1]
+     58 ?        I<     0:00  \_ [scsi_tmf_1]
+     59 ?        I<     0:00  \_ [vfio-irqfd-clea]
+     60 ?        I<     0:00  \_ [mld]
+     61 ?        I<     0:00  \_ [ipv6_addrconf]
+     66 ?        I<     0:00  \_ [kstrp]
+     72 ?        I<     0:00  \_ [zswap-shrink]
+     73 ?        I<     0:00  \_ [kworker/u3:0]
+    120 ?        I<     0:00  \_ [charger_manager]
+    159 ?        S      0:00  \_ [scsi_eh_2]
+    160 ?        I<     0:00  \_ [scsi_tmf_2]
+    185 ?        S      0:02  \_ [jbd2/sda3-8]
+    186 ?        I<     0:00  \_ [ext4-rsv-conver]
+    258 ?        S      0:00  \_ [irq/18-vmwgfx]
+    259 ?        S      0:00  \_ [card0-crtc0]
+    260 ?        S      0:00  \_ [card0-crtc1]
+    261 ?        S      0:00  \_ [card0-crtc2]
+    262 ?        S      0:00  \_ [card0-crtc3]
+    263 ?        S      0:00  \_ [card0-crtc4]
+    264 ?        S      0:00  \_ [card0-crtc5]
+    265 ?        S      0:00  \_ [card0-crtc6]
+    266 ?        S      0:00  \_ [card0-crtc7]
+    312 ?        I<     0:00  \_ [iprt-VBoxWQueue]
+    350 ?        I<     0:00  \_ [cryptd]
+   3586 ?        I      0:00  \_ [kworker/0:2-cgroup_destroy]
+   4056 ?        I      0:09  \_ [kworker/0:0-events]
+   4731 ?        I      0:00  \_ [kworker/u2:1-events_unbound]
+   4740 ?        I      0:00  \_ [kworker/u2:2-events_unbound]
+   5019 ?        I      0:00  \_ [kworker/u2:3-events_unbound]
+      1 ?        Ss     0:13 /sbin/init splash
+    225 ?        S<s    0:03 /lib/systemd/systemd-journald
+    293 ?        Ss     0:00 /lib/systemd/systemd-udevd
+    547 ?        Ss     0:25 /lib/systemd/systemd-oomd
+    548 ?        Ss     0:00 /lib/systemd/systemd-resolved
+    656 ?        Ssl    0:00 /usr/libexec/accounts-daemon
+    657 ?        Ss     0:00 /usr/sbin/acpid
+    660 ?        Ss     0:00 avahi-daemon: running [oksana-VirtualBox.local]
+    697 ?        S      0:00  \_ avahi-daemon: chroot helper
+    661 ?        Ss     0:00 /usr/sbin/cron -f -P
+    662 ?        Ss     0:08 @dbus-daemon --system --address=systemd: --nofork -
+    663 ?        Ssl    0:03 /usr/sbin/NetworkManager --no-daemon
+    674 ?        Ss     0:00 /usr/bin/python3 /usr/bin/networkd-dispatcher --run
+    675 ?        Ssl    0:12 /usr/libexec/polkitd --no-debug
+    680 ?        Ssl    0:00 /usr/libexec/power-profiles-daemon
+    682 ?        Ssl    0:00 /usr/sbin/rsyslogd -n -iNONE
+    688 ?        Ssl    1:56 /usr/lib/snapd/snapd
+    689 ?        Ssl    0:00 /usr/libexec/switcheroo-control
+    690 ?        Ss     0:01 /lib/systemd/systemd-logind
+    691 ?        Ssl    0:00 /usr/libexec/udisks2/udisksd
+    694 ?        Ss     0:00 /sbin/wpa_supplicant -u -s -O /run/wpa_supplicant
+    757 ?        Ssl    0:00 /usr/sbin/ModemManager
+    767 ?        Ss     0:00 /usr/sbin/cupsd -l
+    890 ?        S      0:00  \_ /usr/lib/cups/notifier/dbus dbus://
+    770 ?        Ss     0:01 /bin/sh /snap/cups/872/scripts/run-cups-browsed
+   1454 ?        S      0:00  \_ /bin/sh /snap/cups/872/scripts/run-cups-browsed
+  11317 ?        S      0:00      \_ sleep 3600
+    771 ?        Ss     0:01 /bin/sh /snap/cups/872/scripts/run-cupsd
+   1445 ?        S      0:00  \_ cupsd -f -s /var/snap/cups/common/etc/cups/cups
+    775 ?        Ssl    0:00 /usr/bin/python3 /usr/share/unattended-upgrades/una
+    851 ?        Ss     0:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 star
+    891 ?        Ssl    0:00 /usr/sbin/cups-browsed
+    895 ?        Ss     0:00 /usr/sbin/kerneloops --test
+    897 ?        Ss     0:00 /usr/sbin/kerneloops
+    956 ?        Ss     0:00 nginx: master process /usr/sbin/nginx -g daemon on;
+   4862 ?        S      0:00  \_ nginx: worker process
+   1348 ?        Sl     0:05 /usr/bin/VBoxDRMClient
+   1351 ?        Sl     0:02 /usr/sbin/VBoxService --pidfile /var/run/vboxadd-se
+   1392 ?        Ssl    0:00 /usr/sbin/gdm3
+   1920 ?        Z      0:00  \_ [gdm-session-wor] <defunct>
+   2803 ?        Sl     0:00  \_ gdm-session-worker [pam/gdm-password]
+   2845 tty2     Ssl+   0:00      \_ /usr/libexec/gdm-x-session --run-script env
+   2847 tty2     Sl+    3:34          \_ /usr/lib/xorg/Xorg vt2 -displayfd 3 -au
+   2899 tty2     Sl+    0:00          \_ /usr/libexec/gnome-session-binary --ses
+   1670 ?        SNsl   0:00 /usr/libexec/rtkit-daemon
+   1820 ?        Ssl    0:00 /usr/libexec/upowerd
+   2345 ?        Ssl    0:00 /usr/libexec/packagekitd
+   2482 ?        Ssl    0:00 /usr/libexec/colord
+   2821 ?        Ss     0:04 /lib/systemd/systemd --user
+   2822 ?        S      0:00  \_ (sd-pam)
+   2828 ?        S<sl   0:00  \_ /usr/bin/pipewire
+   2829 ?        Ssl    0:00  \_ /usr/bin/pipewire-media-session
+   2830 ?        S<sl   0:00  \_ /usr/bin/pulseaudio --daemonize=no --log-target
+   2838 ?        Ss     0:02  \_ /usr/bin/dbus-daemon --session --address=system
+   2850 ?        Ssl    0:00  \_ /usr/libexec/gvfsd
+   3395 ?        Sl     0:00  |   \_ /usr/libexec/gvfsd-trash --spawner :1.4 /or
+   2855 ?        Sl     0:00  \_ /usr/libexec/gvfsd-fuse /run/user/1000/gvfs -f
+   2882 ?        Ssl    0:00  \_ /usr/libexec/xdg-document-portal
+   2893 ?        Ss     0:00  |   \_ fusermount3 -o rw,nosuid,nodev,fsname=porta
+   2887 ?        Ssl    0:00  \_ /usr/libexec/xdg-permission-store
+   3072 ?        Ssl    0:00  \_ /usr/libexec/at-spi-bus-launcher
+   3078 ?        S      0:00  |   \_ /usr/bin/dbus-daemon --config-file=/usr/sha
+   3088 ?        Ssl    0:00  \_ /usr/libexec/gnome-session-ctl --monitor
+   3098 ?        Ssl    0:00  \_ /usr/libexec/gvfs-udisks2-volume-monitor
+   3106 ?        Ssl    0:00  \_ /usr/libexec/gnome-session-binary --systemd-ser
+   3507 ?        Sl     0:00  |   \_ /usr/libexec/gsd-disk-utility-notify
+   3113 ?        Ssl    0:00  \_ /usr/libexec/gvfs-mtp-volume-monitor
+   3117 ?        Ssl    0:00  \_ /usr/libexec/gvfs-goa-volume-monitor
+   3121 ?        Sl     0:00  \_ /usr/libexec/goa-daemon
+   3153 ?        Sl     0:00  \_ /usr/libexec/goa-identity-service
+   3155 ?        Ssl    0:00  \_ /usr/libexec/gvfs-afc-volume-monitor
+   3166 ?        Ssl    0:00  \_ /usr/libexec/gvfs-gphoto2-volume-monitor
+   3253 ?        Sl     0:00  \_ /usr/libexec/gnome-shell-calendar-server
+   3259 ?        Ssl    0:00  \_ /usr/libexec/xdg-desktop-portal
+   3265 ?        Ssl    0:00  \_ /usr/libexec/evolution-source-registry
+   3274 ?        Ssl    0:01  \_ /usr/libexec/xdg-desktop-portal-gnome
+   3289 ?        Ssl    0:00  \_ /usr/libexec/evolution-calendar-factory
+   3308 ?        Ssl    0:00  \_ /usr/libexec/dconf-service
+   3309 ?        Ssl    0:00  \_ /usr/libexec/evolution-addressbook-factory
+   3312 ?        Ssl    0:00  \_ /usr/libexec/xdg-desktop-portal-gtk
+   3322 ?        Sl     0:01  \_ /usr/libexec/at-spi2-registryd --use-gnome-sess
+   3422 ?        Ss     0:00  \_ sh -c /usr/bin/ibus-daemon --panel disable $([ 
+   3433 ?        Sl     0:00  |   \_ /usr/bin/ibus-daemon --panel disable --xim
+   3483 ?        Sl     0:00  |       \_ /usr/libexec/ibus-dconf
+   3485 ?        Sl     0:06  |       \_ /usr/libexec/ibus-extension-gtk3
+   3607 ?        Sl     0:00  |       \_ /usr/libexec/ibus-engine-simple
+   3423 ?        Ssl    0:00  \_ /usr/libexec/gsd-a11y-settings
+   3424 ?        Ssl    0:00  \_ /usr/libexec/gsd-color
+   3425 ?        Ssl    0:00  \_ /usr/libexec/gsd-datetime
+   3426 ?        Ssl    0:00  \_ /usr/libexec/gsd-housekeeping
+   3427 ?        Ssl    0:00  \_ /usr/libexec/gsd-keyboard
+   3428 ?        Ssl    0:01  \_ /usr/libexec/gsd-media-keys
+   3429 ?        Ssl    0:00  \_ /usr/libexec/gsd-power
+   3431 ?        Ssl    0:00  \_ /usr/libexec/gsd-print-notifications
+   3434 ?        Ssl    0:00  \_ /usr/libexec/gsd-rfkill
+   3435 ?        Ssl    0:00  \_ /usr/libexec/gsd-screensaver-proxy
+   3436 ?        Ssl    0:00  \_ /usr/libexec/gsd-sharing
+   3437 ?        Ssl    0:00  \_ /usr/libexec/gsd-smartcard
+   3438 ?        Ssl    0:00  \_ /usr/libexec/gsd-sound
+   3439 ?        Ssl    0:00  \_ /usr/libexec/gsd-wacom
+   3440 ?        Ssl    0:00  \_ /usr/libexec/gsd-xsettings
+   3487 ?        Sl     0:00  \_ /usr/libexec/ibus-x11 --kill-daemon
+   3503 ?        Sl     0:00  \_ /usr/libexec/ibus-portal
+   3585 ?        Sl     0:00  \_ /usr/libexec/gsd-printer
+   3856 ?        Ssl    4:59  \_ /usr/bin/gnome-shell
+   4082 ?        Sl     0:03  |   \_ gjs /usr/share/gnome-shell/extensions/ding@
+   3916 ?        Sl     0:00  \_ /usr/bin/gjs /usr/share/gnome-shell/org.gnome.S
+   4072 ?        Ssl    0:00  \_ /usr/libexec/gvfsd-metadata
+   4165 ?        Ssl    1:20  \_ /usr/libexec/gnome-terminal-server
+   4233 pts/1    Ss     0:00  |   \_ bash
+   4663 pts/1    S+     0:00  |       \_ sudo su
+   4664 pts/0    Ss     0:00  |           \_ sudo su
+   4665 pts/0    S      0:00  |               \_ su
+   4666 pts/0    S      0:00  |                   \_ bash
+  11378 pts/0    R+     0:00  |                       \_ ps afx
+   4446 ?        Ss     0:01  \_ /snap/snapd-desktop-integration/57/usr/bin/snap
+   4640 ?        Sl     0:00      \_ /snap/snapd-desktop-integration/57/usr/bin/
+   2835 ?        Sl     0:00 /usr/bin/gnome-keyring-daemon --daemonize --login
+   2995 ?        S      0:00 /usr/bin/VBoxClient --clipboard
+   2996 ?        Sl     0:00  \_ /usr/bin/VBoxClient --clipboard
+   3011 ?        S      0:00 /usr/bin/VBoxClient --seamless
+   3012 ?        Sl     0:08  \_ /usr/bin/VBoxClient --seamless
+   3015 ?        S      0:00 /usr/bin/VBoxClient --draganddrop
+   3016 ?        Sl     0:31  \_ /usr/bin/VBoxClient --draganddrop
+   3021 ?        S      0:00 /usr/bin/VBoxClient --vmsvga-session
+   3022 ?        Sl     0:02  \_ /usr/bin/VBoxClient --vmsvga-session
+  11181 ?        Ss     0:00 /usr/sbin/apache2 -k start
+  11185 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11186 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11187 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11188 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11189 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11377 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+root@oksana-VirtualBox:/var/www/html# ss -ntlp
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                         
+LISTEN    0         4096         127.0.0.53%lo:53               0.0.0.0:*        users:(("systemd-resolve",pid=548,fd=14))                                      
+LISTEN    0         511                0.0.0.0:80               0.0.0.0:*        users:(("nginx",pid=4862,fd=6),("nginx",pid=956,fd=6))                         
+LISTEN    0         128                0.0.0.0:22               0.0.0.0:*        users:(("sshd",pid=851,fd=3))                                                  
+LISTEN    0         128              127.0.0.1:631              0.0.0.0:*        users:(("cupsd",pid=767,fd=7))                                                 
+LISTEN    0         128                  [::1]:631                 [::]:*        users:(("cupsd",pid=767,fd=6))                                                 
+LISTEN    0         511                      *:8080                   *:*        users:(("apache2",pid=11377,fd=4),("apache2",pid=11189,fd=4),("apache2",pid=11188,fd=4),("apache2",pid=11187,fd=4),("apache2",pid=11186,fd=4),("apache2",pid=11185,fd=4),("apache2",pid=11181,fd=4))
+LISTEN    0         511                   [::]:80                  [::]:*        users:(("nginx",pid=4862,fd=7),("nginx",pid=956,fd=7))                         
+LISTEN    0         128                   [::]:22                  [::]:*        users:(("sshd",pid=851,fd=4))                                                  
+root@oksana-VirtualBox:/var/www/html# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# cd sites-enabled/
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# apt install php8.1-fpm
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово         
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  blender-data fonts-dejavu fonts-dejavu-extra libaom3 libavutil56
+  libcodec2-1.0 libdav1d5 libgsm1 libllvm13 libmfx1 libshine3 libsnappy1v5
+  libswresample3 libva-drm2 libva-x11-2 libva2 libvdpau1 libx264-163
+  libx265-199 ocl-icd-libopencl1
+Для их удаления используйте «sudo apt autoremove».
+Предлагаемые пакеты:
+  php-pear
+Следующие НОВЫЕ пакеты будут установлены:
+  php8.1-fpm
+Обновлено 0 пакетов, установлено 1 новых пакетов, для удаления отмечено 0 пакетов, и 32 пакетов не обновлено.
+Необходимо скачать 1,852 kB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 5,652 kB.
+Пол:1 https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy/main amd64 php8.1-fpm amd64 8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1 [1,852 kB]
+Получено 1,852 kB за 2с (989 kB/s)                                    
+Выбор ранее не выбранного пакета php8.1-fpm.
+(Чтение базы данных … на данный момент установлено 191089 файлов и каталогов.)
+Подготовка к распаковке …/php8.1-fpm_8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+
+1_amd64.deb …
+Распаковывается php8.1-fpm (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+Настраивается пакет php8.1-fpm (8.1.16+repack-1+ubuntu22.04.1+deb.sury.org+1) …
+
+Creating config file /etc/php/8.1/fpm/php.ini with new version
+NOTICE: Not enabling PHP 8.1 FPM by default.
+NOTICE: To enable PHP 8.1 FPM in Apache2 do:
+NOTICE: a2enmod proxy_fcgi setenvif
+NOTICE: a2enconf php8.1-fpm
+NOTICE: You are seeing this message because you have apache2 package installed.
+Created symlink /etc/systemd/system/multi-user.target.wants/php8.1-fpm.service →
+ /lib/systemd/system/php8.1-fpm.service.
+Обрабатываются триггеры для man-db (2.10.2-1) …
+Обрабатываются триггеры для php8.1-fpm (8.1.16+repack-1+ubuntu22.04.1+deb.sury.o
+rg+1) …
+NOTICE: Not enabling PHP 8.1 FPM by default.
+NOTICE: To enable PHP 8.1 FPM in Apache2 do:
+NOTICE: a2enmod proxy_fcgi setenvif
+NOTICE: a2enconf php8.1-fpm
+NOTICE: You are seeing this message because you have apache2 package installed.
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# cd /etc/php
+root@oksana-VirtualBox:/etc/php# ll
+итого 20
+drwxr-xr-x   3 root root  4096 Feb 22 02:54 ./
+drwxr-xr-x 135 root root 12288 Feb 22 02:54 ../
+drwxr-xr-x   6 root root  4096 Feb 22 03:30 8.1/
+root@oksana-VirtualBox:/etc/php# cd 8.1/
+root@oksana-VirtualBox:/etc/php/8.1# ^C
+root@oksana-VirtualBox:/etc/php/8.1# cd fpm/
+root@oksana-VirtualBox:/etc/php/8.1/fpm# ll
+итого 96
+drwxr-xr-x 4 root root  4096 Feb 22 03:30 ./
+drwxr-xr-x 6 root root  4096 Feb 22 03:30 ../
+drwxr-xr-x 2 root root  4096 Feb 22 03:31 conf.d/
+-rw-r--r-- 1 root root  5457 Feb 14 21:35 php-fpm.conf
+-rw-r--r-- 1 root root 73141 Feb 14 21:35 php.ini
+drwxr-xr-x 2 root root  4096 Feb 22 03:30 pool.d/
+root@oksana-VirtualBox:/etc/php/8.1/fpm# cd pool.d/
+root@oksana-VirtualBox:/etc/php/8.1/fpm/pool.d# ll
+итого 32
+drwxr-xr-x 2 root root  4096 Feb 22 03:30 ./
+drwxr-xr-x 4 root root  4096 Feb 22 03:30 ../
+-rw-r--r-- 1 root root 21306 Feb 14 21:35 www.conf
+root@oksana-VirtualBox:/etc/php/8.1/fpm/pool.d# nano www.conf
+root@oksana-VirtualBox:/etc/php/8.1/fpm/pool.d# cd /etc/nginx
+root@oksana-VirtualBox:/etc/nginx# cd sites-enabled/
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# ^C
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nano default
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# systemctl reload nginx
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# apt install mysql-server-8.0
+Чтение списков пакетов… Готово
+Построение дерева зависимостей… Готово
+Чтение информации о состоянии… Готово         
+Следующие пакеты устанавливались автоматически и больше не требуются:
+  blender-data fonts-dejavu fonts-dejavu-extra libaom3 libavutil56
+  libcodec2-1.0 libdav1d5 libgsm1 libllvm13 libmfx1 libshine3 libsnappy1v5
+  libswresample3 libva-drm2 libva-x11-2 libva2 libvdpau1 libx264-163
+  libx265-199 ocl-icd-libopencl1
+Для их удаления используйте «sudo apt autoremove».
+Будут установлены следующие дополнительные пакеты:
+  libaio1 libcgi-fast-perl libcgi-pm-perl libevent-core-2.1-7
+  libevent-pthreads-2.1-7 libfcgi-bin libfcgi-perl libfcgi0ldbl
+  libhtml-template-perl libmecab2 libprotobuf-lite23 mecab-ipadic
+  mecab-ipadic-utf8 mecab-utils mysql-client-8.0 mysql-client-core-8.0
+  mysql-common mysql-server-core-8.0
+Предлагаемые пакеты:
+  libipc-sharedcache-perl mailx tinyca
+Следующие НОВЫЕ пакеты будут установлены:
+  libaio1 libcgi-fast-perl libcgi-pm-perl libevent-core-2.1-7
+  libevent-pthreads-2.1-7 libfcgi-bin libfcgi-perl libfcgi0ldbl
+  libhtml-template-perl libmecab2 libprotobuf-lite23 mecab-ipadic
+  mecab-ipadic-utf8 mecab-utils mysql-client-8.0 mysql-client-core-8.0
+  mysql-common mysql-server-8.0 mysql-server-core-8.0
+Обновлено 0 пакетов, установлено 19 новых пакетов, для удаления отмечено 0 пакетов, и 32 пакетов не обновлено.
+Необходимо скачать 29.2 MB архивов.
+После данной операции объём занятого дискового пространства возрастёт на 242 MB.
+Хотите продолжить? [Д/н] y
+Пол:1 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 mysql-common all 5.8+1.0.8 [7,212 B]
+Пол:2 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 mysql-client-core-8.0 amd64 8.0.32-0ubuntu0.22.04.2 [2,677 kB]
+Пол:3 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 mysql-client-8.0 amd64 8.0.32-0ubuntu0.22.04.2 [22.7 kB]
+Пол:4 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libaio1 amd64 0.3.112-13build1 [7,176 B]
+Пол:5 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libevent-core-2.1-7 amd64 2.1.12-stable-1build3 [93.9 kB]
+Пол:6 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libevent-pthreads-2.1-7 amd64 2.1.12-stable-1build3 [7,642 B]
+Пол:7 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libmecab2 amd64 0.996-14build9 [199 kB]
+Пол:8 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libprotobuf-lite23 amd64 3.12.4-1ubuntu7 [208 kB]
+Пол:9 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 mysql-server-core-8.0 amd64 8.0.32-0ubuntu0.22.04.2 [17.5 MB]
+Пол:10 http://au.archive.ubuntu.com/ubuntu jammy-updates/main amd64 mysql-server-8.0 amd64 8.0.32-0ubuntu0.22.04.2 [1,427 kB]
+Пол:11 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libcgi-pm-perl all 4.54-1 [188 kB]
+Пол:12 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libfcgi0ldbl amd64 2.4.2-2build2 [28.0 kB]
+Пол:13 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libfcgi-perl amd64 0.82+ds-1build1 [22.8 kB]
+Пол:14 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libcgi-fast-perl all 1:2.15-1 [10.5 kB]
+Пол:15 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libfcgi-bin amd64 2.4.2-2build2 [11.2 kB]
+Пол:16 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 libhtml-template-perl all 2.97-1.1 [59.1 kB]
+Пол:17 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 mecab-utils amd64 0.996-14build9 [4,850 B]
+Пол:18 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 mecab-ipadic all 2.7.0-20070801+main-3 [6,718 kB]
+Пол:19 http://au.archive.ubuntu.com/ubuntu jammy/main amd64 mecab-ipadic-utf8 all 2.7.0-20070801+main-3 [4,384 B]
+Получено 29.2 MB за 15с (1,932 kB/s)                                           
+Предварительная настройка пакетов …
+Выбор ранее не выбранного пакета mysql-common.
+(Чтение базы данных … на данный момент установлено 191112 файлов и каталогов.)
+Подготовка к распаковке …/0-mysql-common_5.8+1.0.8_all.deb …
+Распаковывается mysql-common (5.8+1.0.8) …
+Выбор ранее не выбранного пакета mysql-client-core-8.0.
+Подготовка к распаковке …/1-mysql-client-core-8.0_8.0.32-0ubuntu0.22.04.2_amd64.
+deb …
+Распаковывается mysql-client-core-8.0 (8.0.32-0ubuntu0.22.04.2) …
+Выбор ранее не выбранного пакета mysql-client-8.0.
+Подготовка к распаковке …/2-mysql-client-8.0_8.0.32-0ubuntu0.22.04.2_amd64.deb …
+Распаковывается mysql-client-8.0 (8.0.32-0ubuntu0.22.04.2) …
+Выбор ранее не выбранного пакета libaio1:amd64.
+Подготовка к распаковке …/3-libaio1_0.3.112-13build1_amd64.deb …
+Распаковывается libaio1:amd64 (0.3.112-13build1) …
+Выбор ранее не выбранного пакета libevent-core-2.1-7:amd64.
+Подготовка к распаковке …/4-libevent-core-2.1-7_2.1.12-stable-1build3_amd64.deb 
+…
+Распаковывается libevent-core-2.1-7:amd64 (2.1.12-stable-1build3) …
+Выбор ранее не выбранного пакета libevent-pthreads-2.1-7:amd64.
+Подготовка к распаковке …/5-libevent-pthreads-2.1-7_2.1.12-stable-1build3_amd64.
+deb …
+Распаковывается libevent-pthreads-2.1-7:amd64 (2.1.12-stable-1build3) …
+Выбор ранее не выбранного пакета libmecab2:amd64.
+Подготовка к распаковке …/6-libmecab2_0.996-14build9_amd64.deb …
+Распаковывается libmecab2:amd64 (0.996-14build9) …
+Выбор ранее не выбранного пакета libprotobuf-lite23:amd64.
+Подготовка к распаковке …/7-libprotobuf-lite23_3.12.4-1ubuntu7_amd64.deb …
+Распаковывается libprotobuf-lite23:amd64 (3.12.4-1ubuntu7) …
+Выбор ранее не выбранного пакета mysql-server-core-8.0.
+Подготовка к распаковке …/8-mysql-server-core-8.0_8.0.32-0ubuntu0.22.04.2_amd64.
+deb …
+Распаковывается mysql-server-core-8.0 (8.0.32-0ubuntu0.22.04.2) …
+Настраивается пакет mysql-common (5.8+1.0.8) …
+update-alternatives: используется /etc/mysql/my.cnf.fallback для предоставления 
+/etc/mysql/my.cnf (my.cnf) в автоматическом режиме
+Выбор ранее не выбранного пакета mysql-server-8.0.
+(Чтение базы данных … на данный момент установлено 191336 файлов и каталогов.)
+Подготовка к распаковке …/0-mysql-server-8.0_8.0.32-0ubuntu0.22.04.2_amd64.deb …
+Распаковывается mysql-server-8.0 (8.0.32-0ubuntu0.22.04.2) …
+Выбор ранее не выбранного пакета libcgi-pm-perl.
+Подготовка к распаковке …/1-libcgi-pm-perl_4.54-1_all.deb …
+Распаковывается libcgi-pm-perl (4.54-1) …
+Выбор ранее не выбранного пакета libfcgi0ldbl:amd64.
+Подготовка к распаковке …/2-libfcgi0ldbl_2.4.2-2build2_amd64.deb …
+Распаковывается libfcgi0ldbl:amd64 (2.4.2-2build2) …
+Выбор ранее не выбранного пакета libfcgi-perl:amd64.
+Подготовка к распаковке …/3-libfcgi-perl_0.82+ds-1build1_amd64.deb …
+Распаковывается libfcgi-perl:amd64 (0.82+ds-1build1) …
+Выбор ранее не выбранного пакета libcgi-fast-perl.
+Подготовка к распаковке …/4-libcgi-fast-perl_1%3a2.15-1_all.deb …
+Распаковывается libcgi-fast-perl (1:2.15-1) …
+Выбор ранее не выбранного пакета libfcgi-bin.
+Подготовка к распаковке …/5-libfcgi-bin_2.4.2-2build2_amd64.deb …
+Распаковывается libfcgi-bin (2.4.2-2build2) …
+Выбор ранее не выбранного пакета libhtml-template-perl.
+Подготовка к распаковке …/6-libhtml-template-perl_2.97-1.1_all.deb …
+Распаковывается libhtml-template-perl (2.97-1.1) …
+Выбор ранее не выбранного пакета mecab-utils.
+Подготовка к распаковке …/7-mecab-utils_0.996-14build9_amd64.deb …
+Распаковывается mecab-utils (0.996-14build9) …
+Выбор ранее не выбранного пакета mecab-ipadic.
+Подготовка к распаковке …/8-mecab-ipadic_2.7.0-20070801+main-3_all.deb …
+Распаковывается mecab-ipadic (2.7.0-20070801+main-3) …
+Выбор ранее не выбранного пакета mecab-ipadic-utf8.
+Подготовка к распаковке …/9-mecab-ipadic-utf8_2.7.0-20070801+main-3_all.deb …
+Распаковывается mecab-ipadic-utf8 (2.7.0-20070801+main-3) …
+Настраивается пакет libmecab2:amd64 (0.996-14build9) …
+Настраивается пакет mysql-client-core-8.0 (8.0.32-0ubuntu0.22.04.2) …
+Настраивается пакет libfcgi0ldbl:amd64 (2.4.2-2build2) …
+Настраивается пакет libcgi-pm-perl (4.54-1) …
+Настраивается пакет libfcgi-bin (2.4.2-2build2) …
+Настраивается пакет libhtml-template-perl (2.97-1.1) …
+Настраивается пакет libprotobuf-lite23:amd64 (3.12.4-1ubuntu7) …
+Настраивается пакет mecab-utils (0.996-14build9) …
+Настраивается пакет libevent-core-2.1-7:amd64 (2.1.12-stable-1build3) …
+Настраивается пакет mysql-client-8.0 (8.0.32-0ubuntu0.22.04.2) …
+Настраивается пакет libfcgi-perl:amd64 (0.82+ds-1build1) …
+Настраивается пакет libaio1:amd64 (0.3.112-13build1) …
+Настраивается пакет libevent-pthreads-2.1-7:amd64 (2.1.12-stable-1build3) …
+Настраивается пакет mecab-ipadic (2.7.0-20070801+main-3) …
+Compiling IPA dictionary for Mecab.  This takes long time...
+reading /usr/share/mecab/dic/ipadic/unk.def ... 40
+emitting double-array: 100% |###########################################| 
+/usr/share/mecab/dic/ipadic/model.def is not found. skipped.
+reading /usr/share/mecab/dic/ipadic/Conjunction.csv ... 171
+reading /usr/share/mecab/dic/ipadic/Noun.verbal.csv ... 12146
+reading /usr/share/mecab/dic/ipadic/Prefix.csv ... 221
+reading /usr/share/mecab/dic/ipadic/Noun.demonst.csv ... 120
+reading /usr/share/mecab/dic/ipadic/Interjection.csv ... 252
+reading /usr/share/mecab/dic/ipadic/Others.csv ... 2
+reading /usr/share/mecab/dic/ipadic/Noun.others.csv ... 151
+reading /usr/share/mecab/dic/ipadic/Noun.adjv.csv ... 3328
+reading /usr/share/mecab/dic/ipadic/Adj.csv ... 27210
+reading /usr/share/mecab/dic/ipadic/Adnominal.csv ... 135
+reading /usr/share/mecab/dic/ipadic/Filler.csv ... 19
+reading /usr/share/mecab/dic/ipadic/Adverb.csv ... 3032
+reading /usr/share/mecab/dic/ipadic/Postp.csv ... 146
+reading /usr/share/mecab/dic/ipadic/Noun.adverbal.csv ... 795
+reading /usr/share/mecab/dic/ipadic/Noun.nai.csv ... 42
+reading /usr/share/mecab/dic/ipadic/Verb.csv ... 130750
+reading /usr/share/mecab/dic/ipadic/Suffix.csv ... 1393
+reading /usr/share/mecab/dic/ipadic/Noun.place.csv ... 72999
+reading /usr/share/mecab/dic/ipadic/Postp-col.csv ... 91
+reading /usr/share/mecab/dic/ipadic/Noun.name.csv ... 34202
+reading /usr/share/mecab/dic/ipadic/Noun.csv ... 60477
+reading /usr/share/mecab/dic/ipadic/Auxil.csv ... 199
+reading /usr/share/mecab/dic/ipadic/Noun.proper.csv ... 27328
+reading /usr/share/mecab/dic/ipadic/Noun.org.csv ... 16668
+reading /usr/share/mecab/dic/ipadic/Symbol.csv ... 208
+reading /usr/share/mecab/dic/ipadic/Noun.number.csv ... 42
+emitting double-array: 100% |###########################################| 
+reading /usr/share/mecab/dic/ipadic/matrix.def ... 1316x1316
+emitting matrix      : 100% |###########################################| 
+
+done!
+update-alternatives: используется /var/lib/mecab/dic/ipadic для предоставления /
+var/lib/mecab/dic/debian (mecab-dictionary) в автоматическом режиме
+Настраивается пакет libcgi-fast-perl (1:2.15-1) …
+Настраивается пакет mysql-server-core-8.0 (8.0.32-0ubuntu0.22.04.2) …
+Настраивается пакет mecab-ipadic-utf8 (2.7.0-20070801+main-3) …
+Compiling IPA dictionary for Mecab.  This takes long time...
+reading /usr/share/mecab/dic/ipadic/unk.def ... 40
+emitting double-array: 100% |###########################################| 
+/usr/share/mecab/dic/ipadic/model.def is not found. skipped.
+reading /usr/share/mecab/dic/ipadic/Conjunction.csv ... 171
+reading /usr/share/mecab/dic/ipadic/Noun.verbal.csv ... 12146
+reading /usr/share/mecab/dic/ipadic/Prefix.csv ... 221
+reading /usr/share/mecab/dic/ipadic/Noun.demonst.csv ... 120
+reading /usr/share/mecab/dic/ipadic/Interjection.csv ... 252
+reading /usr/share/mecab/dic/ipadic/Others.csv ... 2
+reading /usr/share/mecab/dic/ipadic/Noun.others.csv ... 151
+reading /usr/share/mecab/dic/ipadic/Noun.adjv.csv ... 3328
+reading /usr/share/mecab/dic/ipadic/Adj.csv ... 27210
+reading /usr/share/mecab/dic/ipadic/Adnominal.csv ... 135
+reading /usr/share/mecab/dic/ipadic/Filler.csv ... 19
+reading /usr/share/mecab/dic/ipadic/Adverb.csv ... 3032
+reading /usr/share/mecab/dic/ipadic/Postp.csv ... 146
+reading /usr/share/mecab/dic/ipadic/Noun.adverbal.csv ... 795
+reading /usr/share/mecab/dic/ipadic/Noun.nai.csv ... 42
+reading /usr/share/mecab/dic/ipadic/Verb.csv ... 130750
+reading /usr/share/mecab/dic/ipadic/Suffix.csv ... 1393
+reading /usr/share/mecab/dic/ipadic/Noun.place.csv ... 72999
+reading /usr/share/mecab/dic/ipadic/Postp-col.csv ... 91
+reading /usr/share/mecab/dic/ipadic/Noun.name.csv ... 34202
+reading /usr/share/mecab/dic/ipadic/Noun.csv ... 60477
+reading /usr/share/mecab/dic/ipadic/Auxil.csv ... 199
+reading /usr/share/mecab/dic/ipadic/Noun.proper.csv ... 27328
+reading /usr/share/mecab/dic/ipadic/Noun.org.csv ... 16668
+reading /usr/share/mecab/dic/ipadic/Symbol.csv ... 208
+reading /usr/share/mecab/dic/ipadic/Noun.number.csv ... 42
+emitting double-array: 100% |###########################################| 
+reading /usr/share/mecab/dic/ipadic/matrix.def ... 1316x1316
+emitting matrix      : 100% |###########################################| 
+
+done!
+update-alternatives: используется /var/lib/mecab/dic/ipadic-utf8 для предоставле
+ния /var/lib/mecab/dic/debian (mecab-dictionary) в автоматическом режиме
+Настраивается пакет mysql-server-8.0 (8.0.32-0ubuntu0.22.04.2) …
+update-alternatives: используется /etc/mysql/mysql.cnf для предоставления /etc/m
+ysql/my.cnf (my.cnf) в автоматическом режиме
+Renaming removed key_buffer and myisam-recover options (if present)
+mysqld will log errors to /var/log/mysql/error.log
+mysqld is running as pid 13230
+Created symlink /etc/systemd/system/multi-user.target.wants/mysql.service → /lib
+/systemd/system/mysql.service.
+Обрабатываются триггеры для man-db (2.10.2-1) …
+Обрабатываются триггеры для libc-bin (2.35-0ubuntu3.1) …
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# ps afx
+    PID TTY      STAT   TIME COMMAND
+      2 ?        S      0:00 [kthreadd]
+      3 ?        I<     0:00  \_ [rcu_gp]
+      4 ?        I<     0:00  \_ [rcu_par_gp]
+      5 ?        I<     0:00  \_ [slub_flushwq]
+      6 ?        I<     0:00  \_ [netns]
+      8 ?        I<     0:00  \_ [kworker/0:0H-events_highpri]
+     10 ?        I<     0:00  \_ [mm_percpu_wq]
+     11 ?        I      0:00  \_ [rcu_tasks_kthread]
+     12 ?        I      0:00  \_ [rcu_tasks_rude_kthread]
+     13 ?        I      0:00  \_ [rcu_tasks_trace_kthread]
+     14 ?        S      0:04  \_ [ksoftirqd/0]
+     15 ?        I      0:08  \_ [rcu_preempt]
+     16 ?        S      0:00  \_ [migration/0]
+     17 ?        S      0:00  \_ [idle_inject/0]
+     19 ?        S      0:00  \_ [cpuhp/0]
+     20 ?        S      0:00  \_ [kdevtmpfs]
+     21 ?        I<     0:00  \_ [inet_frag_wq]
+     22 ?        S      0:00  \_ [kauditd]
+     23 ?        S      0:00  \_ [khungtaskd]
+     25 ?        S      0:00  \_ [oom_reaper]
+     26 ?        I<     0:00  \_ [writeback]
+     28 ?        S      0:01  \_ [kcompactd0]
+     29 ?        SN     0:00  \_ [ksmd]
+     30 ?        SN     0:00  \_ [khugepaged]
+     31 ?        I<     0:00  \_ [kintegrityd]
+     32 ?        I<     0:00  \_ [kblockd]
+     33 ?        I<     0:00  \_ [blkcg_punt_bio]
+     34 ?        I<     0:00  \_ [tpm_dev_wq]
+     35 ?        I<     0:00  \_ [ata_sff]
+     36 ?        I<     0:00  \_ [md]
+     37 ?        I<     0:00  \_ [edac-poller]
+     38 ?        I<     0:00  \_ [devfreq_wq]
+     39 ?        S      0:00  \_ [watchdogd]
+     40 ?        I<     0:14  \_ [kworker/0:1H-kblockd]
+     41 ?        S      0:24  \_ [kswapd0]
+     42 ?        S      0:00  \_ [ecryptfs-kthread]
+     49 ?        I<     0:00  \_ [kthrotld]
+     53 ?        I<     0:00  \_ [acpi_thermal_pm]
+     54 ?        S      0:00  \_ [xenbus_probe]
+     55 ?        S      0:00  \_ [scsi_eh_0]
+     56 ?        I<     0:00  \_ [scsi_tmf_0]
+     57 ?        S      0:00  \_ [scsi_eh_1]
+     58 ?        I<     0:00  \_ [scsi_tmf_1]
+     59 ?        I<     0:00  \_ [vfio-irqfd-clea]
+     60 ?        I<     0:00  \_ [mld]
+     61 ?        I<     0:00  \_ [ipv6_addrconf]
+     66 ?        I<     0:00  \_ [kstrp]
+     72 ?        I<     0:00  \_ [zswap-shrink]
+     73 ?        I<     0:00  \_ [kworker/u3:0]
+    120 ?        I<     0:00  \_ [charger_manager]
+    159 ?        S      0:00  \_ [scsi_eh_2]
+    160 ?        I<     0:00  \_ [scsi_tmf_2]
+    185 ?        S      0:04  \_ [jbd2/sda3-8]
+    186 ?        I<     0:00  \_ [ext4-rsv-conver]
+    258 ?        S      0:01  \_ [irq/18-vmwgfx]
+    259 ?        S      0:00  \_ [card0-crtc0]
+    260 ?        S      0:00  \_ [card0-crtc1]
+    261 ?        S      0:00  \_ [card0-crtc2]
+    262 ?        S      0:00  \_ [card0-crtc3]
+    263 ?        S      0:00  \_ [card0-crtc4]
+    264 ?        S      0:00  \_ [card0-crtc5]
+    265 ?        S      0:00  \_ [card0-crtc6]
+    266 ?        S      0:00  \_ [card0-crtc7]
+    312 ?        I<     0:00  \_ [iprt-VBoxWQueue]
+    350 ?        I<     0:00  \_ [cryptd]
+   3586 ?        I      0:00  \_ [kworker/0:2-cgroup_destroy]
+   4056 ?        I      0:12  \_ [kworker/0:0-events]
+   4731 ?        I      0:01  \_ [kworker/u2:1-ext4-rsv-conversion]
+  12417 ?        I      0:00  \_ [kworker/u2:2-events_power_efficient]
+  12773 ?        I      0:00  \_ [kworker/u2:3-ext4-rsv-conversion]
+  13358 ?        I      0:00  \_ [kworker/u2:0-events_power_efficient]
+  13462 ?        I      0:00  \_ [kworker/u2:4]
+      1 ?        Ss     0:18 /sbin/init splash
+    225 ?        S<s    0:04 /lib/systemd/systemd-journald
+    293 ?        Ss     0:00 /lib/systemd/systemd-udevd
+    547 ?        Ss     0:32 /lib/systemd/systemd-oomd
+    548 ?        Ss     0:00 /lib/systemd/systemd-resolved
+    656 ?        Ssl    0:01 /usr/libexec/accounts-daemon
+    657 ?        Ss     0:00 /usr/sbin/acpid
+    660 ?        Ss     0:00 avahi-daemon: running [oksana-VirtualBox.local]
+    697 ?        S      0:00  \_ avahi-daemon: chroot helper
+    661 ?        Ss     0:00 /usr/sbin/cron -f -P
+    662 ?        Ss     0:10 @dbus-daemon --system --address=systemd: --nofork -
+    663 ?        Ssl    0:03 /usr/sbin/NetworkManager --no-daemon
+    674 ?        Ss     0:00 /usr/bin/python3 /usr/bin/networkd-dispatcher --run
+    675 ?        Ssl    0:13 /usr/libexec/polkitd --no-debug
+    680 ?        Ssl    0:00 /usr/libexec/power-profiles-daemon
+    682 ?        Ssl    0:00 /usr/sbin/rsyslogd -n -iNONE
+    688 ?        Ssl    1:57 /usr/lib/snapd/snapd
+    689 ?        Ssl    0:00 /usr/libexec/switcheroo-control
+    690 ?        Ss     0:01 /lib/systemd/systemd-logind
+    691 ?        Ssl    0:00 /usr/libexec/udisks2/udisksd
+    694 ?        Ss     0:00 /sbin/wpa_supplicant -u -s -O /run/wpa_supplicant
+    757 ?        Ssl    0:00 /usr/sbin/ModemManager
+    767 ?        Ss     0:00 /usr/sbin/cupsd -l
+    890 ?        S      0:00  \_ /usr/lib/cups/notifier/dbus dbus://
+    770 ?        Ss     0:01 /bin/sh /snap/cups/872/scripts/run-cups-browsed
+   1454 ?        S      0:00  \_ /bin/sh /snap/cups/872/scripts/run-cups-browsed
+  11317 ?        S      0:00      \_ sleep 3600
+    771 ?        Ss     0:01 /bin/sh /snap/cups/872/scripts/run-cupsd
+   1445 ?        S      0:00  \_ cupsd -f -s /var/snap/cups/common/etc/cups/cups
+    775 ?        Ssl    0:00 /usr/bin/python3 /usr/share/unattended-upgrades/una
+    851 ?        Ss     0:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 star
+    891 ?        Ssl    0:00 /usr/sbin/cups-browsed
+    895 ?        Ss     0:00 /usr/sbin/kerneloops --test
+    897 ?        Ss     0:00 /usr/sbin/kerneloops
+    956 ?        Ss     0:00 nginx: master process /usr/sbin/nginx -g daemon on;
+  12711 ?        S      0:00  \_ nginx: worker process
+   1348 ?        Sl     0:07 /usr/bin/VBoxDRMClient
+   1351 ?        Sl     0:03 /usr/sbin/VBoxService --pidfile /var/run/vboxadd-se
+   1392 ?        Ssl    0:00 /usr/sbin/gdm3
+   1920 ?        Z      0:00  \_ [gdm-session-wor] <defunct>
+   2803 ?        Sl     0:00  \_ gdm-session-worker [pam/gdm-password]
+   2845 tty2     Ssl+   0:00      \_ /usr/libexec/gdm-x-session --run-script env
+   2847 tty2     Sl+    5:33          \_ /usr/lib/xorg/Xorg vt2 -displayfd 3 -au
+   2899 tty2     Sl+    0:00          \_ /usr/libexec/gnome-session-binary --ses
+   1670 ?        SNsl   0:00 /usr/libexec/rtkit-daemon
+   1820 ?        Ssl    0:00 /usr/libexec/upowerd
+   2345 ?        Ssl    0:00 /usr/libexec/packagekitd
+   2482 ?        Ssl    0:00 /usr/libexec/colord
+   2821 ?        Ss     0:04 /lib/systemd/systemd --user
+   2822 ?        S      0:00  \_ (sd-pam)
+   2828 ?        S<sl   0:00  \_ /usr/bin/pipewire
+   2829 ?        Ssl    0:00  \_ /usr/bin/pipewire-media-session
+   2830 ?        S<sl   0:00  \_ /usr/bin/pulseaudio --daemonize=no --log-target
+   2838 ?        Ss     0:03  \_ /usr/bin/dbus-daemon --session --address=system
+   2850 ?        Ssl    0:00  \_ /usr/libexec/gvfsd
+   3395 ?        Sl     0:00  |   \_ /usr/libexec/gvfsd-trash --spawner :1.4 /or
+   2855 ?        Sl     0:00  \_ /usr/libexec/gvfsd-fuse /run/user/1000/gvfs -f
+   2882 ?        Ssl    0:00  \_ /usr/libexec/xdg-document-portal
+   2893 ?        Ss     0:00  |   \_ fusermount3 -o rw,nosuid,nodev,fsname=porta
+   2887 ?        Ssl    0:00  \_ /usr/libexec/xdg-permission-store
+   3072 ?        Ssl    0:00  \_ /usr/libexec/at-spi-bus-launcher
+   3078 ?        S      0:00  |   \_ /usr/bin/dbus-daemon --config-file=/usr/sha
+   3088 ?        Ssl    0:00  \_ /usr/libexec/gnome-session-ctl --monitor
+   3098 ?        Ssl    0:00  \_ /usr/libexec/gvfs-udisks2-volume-monitor
+   3106 ?        Ssl    0:00  \_ /usr/libexec/gnome-session-binary --systemd-ser
+   3507 ?        Sl     0:00  |   \_ /usr/libexec/gsd-disk-utility-notify
+   3113 ?        Ssl    0:00  \_ /usr/libexec/gvfs-mtp-volume-monitor
+   3117 ?        Ssl    0:00  \_ /usr/libexec/gvfs-goa-volume-monitor
+   3121 ?        Sl     0:00  \_ /usr/libexec/goa-daemon
+   3153 ?        Sl     0:00  \_ /usr/libexec/goa-identity-service
+   3155 ?        Ssl    0:01  \_ /usr/libexec/gvfs-afc-volume-monitor
+   3166 ?        Ssl    0:00  \_ /usr/libexec/gvfs-gphoto2-volume-monitor
+   3253 ?        Sl     0:00  \_ /usr/libexec/gnome-shell-calendar-server
+   3259 ?        Ssl    0:00  \_ /usr/libexec/xdg-desktop-portal
+   3265 ?        Ssl    0:00  \_ /usr/libexec/evolution-source-registry
+   3274 ?        Ssl    0:01  \_ /usr/libexec/xdg-desktop-portal-gnome
+   3289 ?        Ssl    0:00  \_ /usr/libexec/evolution-calendar-factory
+   3308 ?        Ssl    0:00  \_ /usr/libexec/dconf-service
+   3309 ?        Ssl    0:00  \_ /usr/libexec/evolution-addressbook-factory
+   3312 ?        Ssl    0:00  \_ /usr/libexec/xdg-desktop-portal-gtk
+   3322 ?        Sl     0:02  \_ /usr/libexec/at-spi2-registryd --use-gnome-sess
+   3422 ?        Ss     0:00  \_ sh -c /usr/bin/ibus-daemon --panel disable $([ 
+   3433 ?        Sl     0:00  |   \_ /usr/bin/ibus-daemon --panel disable --xim
+   3483 ?        Sl     0:00  |       \_ /usr/libexec/ibus-dconf
+   3485 ?        Sl     0:06  |       \_ /usr/libexec/ibus-extension-gtk3
+   3607 ?        Sl     0:00  |       \_ /usr/libexec/ibus-engine-simple
+   3423 ?        Ssl    0:00  \_ /usr/libexec/gsd-a11y-settings
+   3424 ?        Ssl    0:00  \_ /usr/libexec/gsd-color
+   3425 ?        Ssl    0:00  \_ /usr/libexec/gsd-datetime
+   3426 ?        Ssl    0:00  \_ /usr/libexec/gsd-housekeeping
+   3427 ?        Ssl    0:00  \_ /usr/libexec/gsd-keyboard
+   3428 ?        Ssl    0:01  \_ /usr/libexec/gsd-media-keys
+   3429 ?        Ssl    0:00  \_ /usr/libexec/gsd-power
+   3431 ?        Ssl    0:00  \_ /usr/libexec/gsd-print-notifications
+   3434 ?        Ssl    0:00  \_ /usr/libexec/gsd-rfkill
+   3435 ?        Ssl    0:00  \_ /usr/libexec/gsd-screensaver-proxy
+   3436 ?        Ssl    0:00  \_ /usr/libexec/gsd-sharing
+   3437 ?        Ssl    0:00  \_ /usr/libexec/gsd-smartcard
+   3438 ?        Ssl    0:00  \_ /usr/libexec/gsd-sound
+   3439 ?        Ssl    0:00  \_ /usr/libexec/gsd-wacom
+   3440 ?        Ssl    0:00  \_ /usr/libexec/gsd-xsettings
+   3487 ?        Sl     0:00  \_ /usr/libexec/ibus-x11 --kill-daemon
+   3503 ?        Sl     0:00  \_ /usr/libexec/ibus-portal
+   3585 ?        Sl     0:00  \_ /usr/libexec/gsd-printer
+   3856 ?        Ssl    7:33  \_ /usr/bin/gnome-shell
+  12765 ?        Sl     0:01  |   \_ gjs /usr/share/gnome-shell/extensions/ding@
+   3916 ?        Sl     0:00  \_ /usr/bin/gjs /usr/share/gnome-shell/org.gnome.S
+   4072 ?        Ssl    0:00  \_ /usr/libexec/gvfsd-metadata
+   4165 ?        Ssl    2:03  \_ /usr/libexec/gnome-terminal-server
+   4233 pts/1    Ss     0:00  |   \_ bash
+   4663 pts/1    S+     0:01  |       \_ sudo su
+   4664 pts/0    Ss     0:00  |           \_ sudo su
+   4665 pts/0    S      0:00  |               \_ su
+   4666 pts/0    S      0:00  |                   \_ bash
+  13547 pts/0    R+     0:00  |                       \_ ps afx
+   4446 ?        Ss     0:01  \_ /snap/snapd-desktop-integration/57/usr/bin/snap
+   4640 ?        Sl     0:00      \_ /snap/snapd-desktop-integration/57/usr/bin/
+   2835 ?        Sl     0:00 /usr/bin/gnome-keyring-daemon --daemonize --login
+   2995 ?        S      0:00 /usr/bin/VBoxClient --clipboard
+   2996 ?        Sl     0:00  \_ /usr/bin/VBoxClient --clipboard
+   3011 ?        S      0:00 /usr/bin/VBoxClient --seamless
+   3012 ?        Sl     0:12  \_ /usr/bin/VBoxClient --seamless
+   3015 ?        S      0:00 /usr/bin/VBoxClient --draganddrop
+   3016 ?        Sl     0:44  \_ /usr/bin/VBoxClient --draganddrop
+   3021 ?        S      0:00 /usr/bin/VBoxClient --vmsvga-session
+   3022 ?        Sl     0:04  \_ /usr/bin/VBoxClient --vmsvga-session
+  11181 ?        Ss     0:00 /usr/sbin/apache2 -k start
+  11185 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11186 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11187 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11188 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11189 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  11377 ?        S      0:00  \_ /usr/sbin/apache2 -k start
+  12495 ?        Ss     0:00 php-fpm: master process (/etc/php/8.1/fpm/php-fpm.c
+  12496 ?        S      0:00  \_ php-fpm: pool www
+  12497 ?        S      0:00  \_ php-fpm: pool www
+  13418 ?        Ssl    0:04 /usr/sbin/mysqld
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# ss -ntlp
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                         
+LISTEN    0         70               127.0.0.1:33060            0.0.0.0:*        users:(("mysqld",pid=13418,fd=31))                                             
+LISTEN    0         4096         127.0.0.53%lo:53               0.0.0.0:*        users:(("systemd-resolve",pid=548,fd=14))                                      
+LISTEN    0         511                0.0.0.0:80               0.0.0.0:*        users:(("nginx",pid=12711,fd=6),("nginx",pid=956,fd=6))                        
+LISTEN    0         128                0.0.0.0:22               0.0.0.0:*        users:(("sshd",pid=851,fd=3))                                                  
+LISTEN    0         128              127.0.0.1:631              0.0.0.0:*        users:(("cupsd",pid=767,fd=7))                                                 
+LISTEN    0         151              127.0.0.1:3306             0.0.0.0:*        users:(("mysqld",pid=13418,fd=33))                                             
+LISTEN    0         128                  [::1]:631                 [::]:*        users:(("cupsd",pid=767,fd=6))                                                 
+LISTEN    0         511                      *:8080                   *:*        users:(("apache2",pid=11377,fd=4),("apache2",pid=11189,fd=4),("apache2",pid=11188,fd=4),("apache2",pid=11187,fd=4),("apache2",pid=11186,fd=4),("apache2",pid=11185,fd=4),("apache2",pid=11181,fd=4))
+LISTEN    0         511                   [::]:80                  [::]:*        users:(("nginx",pid=12711,fd=7),("nginx",pid=956,fd=7))                        
+LISTEN    0         128                   [::]:22                  [::]:*        users:(("sshd",pid=851,fd=4))                                                  
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# ^C
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# sudo mysql
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.32-0ubuntu0.22.04.2 (Ubuntu)
+
+Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> ^C
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (1.81 sec)
+
+mysql> use mysql;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++------------------------------------------------------+
+| Tables_in_mysql                                      |
++------------------------------------------------------+
+| columns_priv                                         |
+| component                                            |
+| db                                                   |
+| default_roles                                        |
+| engine_cost                                          |
+| func                                                 |
+| general_log                                          |
+| global_grants                                        |
+| gtid_executed                                        |
+| help_category                                        |
+| help_keyword                                         |
+| help_relation                                        |
+| help_topic                                           |
+| innodb_index_stats                                   |
+| innodb_table_stats                                   |
+| password_history                                     |
+| plugin                                               |
+| procs_priv                                           |
+| proxies_priv                                         |
+| replication_asynchronous_connection_failover         |
+| replication_asynchronous_connection_failover_managed |
+| replication_group_configuration_version              |
+| replication_group_member_actions                     |
+| role_edges                                           |
+| server_cost                                          |
+| servers                                              |
+| slave_master_info                                    |
+| slave_relay_log_info                                 |
+| slave_worker_info                                    |
+| slow_log                                             |
+| tables_priv                                          |
+| time_zone                                            |
+| time_zone_leap_second                                |
+| time_zone_name                                       |
+| time_zone_transition                                 |
+| time_zone_transition_type                            |
+| user                                                 |
++------------------------------------------------------+
+37 rows in set (0.01 sec)
+
+mysql> SELECT * FROM user;
++-----------+------------------+-------------+-------------+-------------+-------------+-------------+-----------+-------------+---------------+--------------+-----------+------------+-----------------+------------+------------+--------------+------------+-----------------------+------------------+--------------+-----------------+------------------+------------------+----------------+---------------------+--------------------+------------------+------------+--------------+------------------------+----------+------------------------+--------------------------+----------------------------+---------------+-------------+-----------------+----------------------+-----------------------+------------------------------------------------------------------------+------------------+-----------------------+-------------------+----------------+------------------+----------------+------------------------+---------------------+--------------------------+-----------------+
+| Host      | User             | Select_priv | Insert_priv | Update_priv | Delete_priv | Create_priv | Drop_priv | Reload_priv | Shutdown_priv | Process_priv | File_priv | Grant_priv | References_priv | Index_priv | Alter_priv | Show_db_priv | Super_priv | Create_tmp_table_priv | Lock_tables_priv | Execute_priv | Repl_slave_priv | Repl_client_priv | Create_view_priv | Show_view_priv | Create_routine_priv | Alter_routine_priv | Create_user_priv | Event_priv | Trigger_priv | Create_tablespace_priv | ssl_type | ssl_cipher             | x509_issuer              | x509_subject               | max_questions | max_updates | max_connections | max_user_connections | plugin                | authentication_string                                                  | password_expired | password_last_changed | password_lifetime | account_locked | Create_role_priv | Drop_role_priv | Password_reuse_history | Password_reuse_time | Password_require_current | User_attributes |
++-----------+------------------+-------------+-------------+-------------+-------------+-------------+-----------+-------------+---------------+--------------+-----------+------------+-----------------+------------+------------+--------------+------------+-----------------------+------------------+--------------+-----------------+------------------+------------------+----------------+---------------------+--------------------+------------------+------------+--------------+------------------------+----------+------------------------+--------------------------+----------------------------+---------------+-------------+-----------------+----------------------+-----------------------+------------------------------------------------------------------------+------------------+-----------------------+-------------------+----------------+------------------+----------------+------------------------+---------------------+--------------------------+-----------------+
+| localhost | debian-sys-maint | Y           | Y           | Y           | Y           | Y           | Y         | Y           | Y             | Y            | Y         | Y          | Y               | Y          | Y          | Y            | Y          | Y                     | Y                | Y            | Y               | Y                | Y                | Y              | Y                   | Y                  | Y                | Y          | Y            | Y                      |          | 0x                     | 0x                       | 0x                         |             0 |           0 |               0 |                    0 | caching_sha2_password | $A$005$OO
+V0>Jw\�E#�@Lue79HXzKoLGCC2chYoR0FcC9tO64kS/QSPtdl6/rHHR3/ | N                | 2023-02-22 03:59:50   |              NULL | N              | Y                | Y              |                   NULL |                NULL | NULL                     | NULL            |
+| localhost | mysql.infoschema | Y           | N           | N           | N           | N           | N         | N           | N             | N            | N         | N          | N               | N          | N          | N            | N          | N                     | N                | N            | N               | N                | N                | N              | N                   | N                  | N                | N          | N            | N                      |          | 0x                     | 0x                       | 0x                         |             0 |           0 |               0 |                    0 | caching_sha2_password | $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED | N                | 2023-02-22 03:59:43   |              NULL | Y              | N                | N              |                   NULL |                NULL | NULL                     | NULL            |
+| localhost | mysql.session    | N           | N           | N           | N           | N           | N         | N           | Y             | N            | N         | N          | N               | N          | N          | N            | Y          | N                     | N                | N            | N               | N                | N                | N              | N                   | N                  | N                | N          | N            | N                      |          | 0x                     | 0x                       | 0x                         |             0 |           0 |               0 |                    0 | caching_sha2_password | $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED | N                | 2023-02-22 03:59:43   |              NULL | Y              | N                | N              |                   NULL |                NULL | NULL                     | NULL            |
+| localhost | mysql.sys        | N           | N           | N           | N           | N           | N         | N           | N             | N            | N         | N          | N               | N          | N          | N            | N          | N                     | N                | N            | N               | N                | N                | N              | N                   | N                  | N                | N          | N            | N                      |          | 0x                     | 0x                       | 0x                         |             0 |           0 |               0 |                    0 | caching_sha2_password | $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED | N                | 2023-02-22 03:59:43   |              NULL | Y              | N                | N              |                   NULL |                NULL | NULL                     | NULL            |
+| localhost | root             | Y           | Y           | Y           | Y           | Y           | Y         | Y           | Y             | Y            | Y         | Y          | Y               | Y          | Y          | Y            | Y          | Y                     | Y                | Y            | Y               | Y                | Y                | Y              | Y                   | Y                  | Y                | Y          | Y            | Y                      |          | 0x                     | 0x                       | 0x                         |             0 |           0 |               0 |                    0 | auth_socket           |                                                                        | N                | 2023-02-22 03:59:30   |              NULL | N              | Y                | Y              |                   NULL |                NULL | NULL                     | NULL            |
++-----------+------------------+-------------+-------------+-------------+-------------+-------------+-----------+-------------+---------------+--------------+-----------+------------+-----------------+------------+------------+--------------+------------+-----------------------+------------------+--------------+-----------------+------------------+------------------+----------------+---------------------+--------------------+------------------+------------+--------------+------------------------+----------+------------------------+--------------------------+----------------------------+---------------+-------------+-----------------+----------------------+-----------------------+------------------------------------------------------------------------+------------------+-----------------------+-------------------+----------------+------------------+----------------+------------------------+---------------------+--------------------------+-----------------+
+5 rows in set (0.00 sec)
+
+mysql> mysql> show tables;
+                      |
+| time_zone_name                                       |
+| time_zone_transition                                 |
+| time_zone_transition_type                            |
+| user                                                 |
++------------------------------------------------------+
+37 rows in set (0.01 sec)
+
+mysql> 
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'mysql> show tables' at line 1
+mysql> +------------------------------------------------------+
+    -> | Tables_in_mysql                                      |
+    -> +------------------------------------------------------+
+    -> | columns_priv                                         |
+    -> | component                                            |
+    -> | db                                                   |
+    -> | default_roles                                        |
+    -> | engine_cost                                          |
+    -> | func                                                 |
+    -> | general_log                                          |
+    -> | global_grants                                        |
+    -> | gtid_executed                                        |
+    -> | help_category                                        |
+    -> | help_keyword                                         |
+    -> | help_relation                                        |
+    -> | help_topic                                           |
+    -> | innodb_index_stats                                   |
+    -> | innodb_table_stats                                   |
+    -> | password_history                                     |
+    -> | plugin                                               |
+    -> | procs_priv                                           |
+    -> | proxies_priv                                         |
+    -> | replication_asynchronous_connection_failover         |
+    -> | replication_asynchronous_connection_failover_managed |
+    -> | replication_group_configuration_version              |
+    -> | replication_group_member_actions                     |
+    -> | role_edges                                           |
+    -> | server_cost                                          |
+    -> | servers                                              |
+    -> | slave_master_info                                    |
+    -> | slave_relay_log_info                                 |
+    -> | slave_worker_info                                    |
+    -> | slow_log                                             |
+    -> | tables_priv                                          |
+    -> | time_zone                                            |
+    -> | time_zone_leap_second                                |
+    -> | time_zone_name                                       |
+    -> | time_zone_transition                                 |
+    -> | time_zone_transition_type                            |
+    -> | user                                                 |
+    -> +------------------------------------------------------+
+    -> 37 rows in set (0.01 sec)
+    -> 
+    -> mysql> 
+    -> SELECT * FROM user\G;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '+------------------------------------------------------+
+| Tables_in_mysql      ' at line 1
+ERROR: 
+No query specified
+
+mysql> SELECT * FROM user\G
+*************************** 1. row ***************************
+                    Host: localhost
+                    User: debian-sys-maint
+             Select_priv: Y
+             Insert_priv: Y
+             Update_priv: Y
+             Delete_priv: Y
+             Create_priv: Y
+               Drop_priv: Y
+             Reload_priv: Y
+           Shutdown_priv: Y
+            Process_priv: Y
+               File_priv: Y
+              Grant_priv: Y
+         References_priv: Y
+              Index_priv: Y
+              Alter_priv: Y
+            Show_db_priv: Y
+              Super_priv: Y
+   Create_tmp_table_priv: Y
+        Lock_tables_priv: Y
+            Execute_priv: Y
+         Repl_slave_priv: Y
+        Repl_client_priv: Y
+        Create_view_priv: Y
+          Show_view_priv: Y
+     Create_routine_priv: Y
+      Alter_routine_priv: Y
+        Create_user_priv: Y
+              Event_priv: Y
+            Trigger_priv: Y
+  Create_tablespace_priv: Y
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$OO
+V0>Jw\�E#�@Lue79HXzKoLGCC2chYoR0FcC9tO64kS/QSPtdl6/rHHR3/
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:50
+       password_lifetime: NULL
+          account_locked: N
+        Create_role_priv: Y
+          Drop_role_priv: Y
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 2. row ***************************
+                    Host: localhost
+                    User: mysql.infoschema
+             Select_priv: Y
+             Insert_priv: N
+             Update_priv: N
+             Delete_priv: N
+             Create_priv: N
+               Drop_priv: N
+             Reload_priv: N
+           Shutdown_priv: N
+            Process_priv: N
+               File_priv: N
+              Grant_priv: N
+         References_priv: N
+              Index_priv: N
+              Alter_priv: N
+            Show_db_priv: N
+              Super_priv: N
+   Create_tmp_table_priv: N
+        Lock_tables_priv: N
+            Execute_priv: N
+         Repl_slave_priv: N
+        Repl_client_priv: N
+        Create_view_priv: N
+          Show_view_priv: N
+     Create_routine_priv: N
+      Alter_routine_priv: N
+        Create_user_priv: N
+              Event_priv: N
+            Trigger_priv: N
+  Create_tablespace_priv: N
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:43
+       password_lifetime: NULL
+          account_locked: Y
+        Create_role_priv: N
+          Drop_role_priv: N
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 3. row ***************************
+                    Host: localhost
+                    User: mysql.session
+             Select_priv: N
+             Insert_priv: N
+             Update_priv: N
+             Delete_priv: N
+             Create_priv: N
+               Drop_priv: N
+             Reload_priv: N
+           Shutdown_priv: Y
+            Process_priv: N
+               File_priv: N
+              Grant_priv: N
+         References_priv: N
+              Index_priv: N
+              Alter_priv: N
+            Show_db_priv: N
+              Super_priv: Y
+   Create_tmp_table_priv: N
+        Lock_tables_priv: N
+            Execute_priv: N
+         Repl_slave_priv: N
+        Repl_client_priv: N
+        Create_view_priv: N
+          Show_view_priv: N
+     Create_routine_priv: N
+      Alter_routine_priv: N
+        Create_user_priv: N
+              Event_priv: N
+            Trigger_priv: N
+  Create_tablespace_priv: N
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:43
+       password_lifetime: NULL
+          account_locked: Y
+        Create_role_priv: N
+          Drop_role_priv: N
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 4. row ***************************
+                    Host: localhost
+                    User: mysql.sys
+             Select_priv: N
+             Insert_priv: N
+             Update_priv: N
+             Delete_priv: N
+             Create_priv: N
+               Drop_priv: N
+             Reload_priv: N
+           Shutdown_priv: N
+            Process_priv: N
+               File_priv: N
+              Grant_priv: N
+         References_priv: N
+              Index_priv: N
+              Alter_priv: N
+            Show_db_priv: N
+              Super_priv: N
+   Create_tmp_table_priv: N
+        Lock_tables_priv: N
+            Execute_priv: N
+         Repl_slave_priv: N
+        Repl_client_priv: N
+        Create_view_priv: N
+          Show_view_priv: N
+     Create_routine_priv: N
+      Alter_routine_priv: N
+        Create_user_priv: N
+              Event_priv: N
+            Trigger_priv: N
+  Create_tablespace_priv: N
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: caching_sha2_password
+   authentication_string: $A$005$THISISACOMBINATIONOFINVALIDSALTANDPASSWORDTHATMUSTNEVERBRBEUSED
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:43
+       password_lifetime: NULL
+          account_locked: Y
+        Create_role_priv: N
+          Drop_role_priv: N
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+*************************** 5. row ***************************
+                    Host: localhost
+                    User: root
+             Select_priv: Y
+             Insert_priv: Y
+             Update_priv: Y
+             Delete_priv: Y
+             Create_priv: Y
+               Drop_priv: Y
+             Reload_priv: Y
+           Shutdown_priv: Y
+            Process_priv: Y
+               File_priv: Y
+              Grant_priv: Y
+         References_priv: Y
+              Index_priv: Y
+              Alter_priv: Y
+            Show_db_priv: Y
+              Super_priv: Y
+   Create_tmp_table_priv: Y
+        Lock_tables_priv: Y
+            Execute_priv: Y
+         Repl_slave_priv: Y
+        Repl_client_priv: Y
+        Create_view_priv: Y
+          Show_view_priv: Y
+     Create_routine_priv: Y
+      Alter_routine_priv: Y
+        Create_user_priv: Y
+              Event_priv: Y
+            Trigger_priv: Y
+  Create_tablespace_priv: Y
+                ssl_type: 
+              ssl_cipher: 0x
+             x509_issuer: 0x
+            x509_subject: 0x
+           max_questions: 0
+             max_updates: 0
+         max_connections: 0
+    max_user_connections: 0
+                  plugin: auth_socket
+   authentication_string: 
+        password_expired: N
+   password_last_changed: 2023-02-22 03:59:30
+       password_lifetime: NULL
+          account_locked: N
+        Create_role_priv: Y
+          Drop_role_priv: Y
+  Password_reuse_history: NULL
+     Password_reuse_time: NULL
+Password_require_current: NULL
+         User_attributes: NULL
+5 rows in set (0.00 sec)
+
+mysql> CREATE DATABASE oksana;
+Query OK, 1 row affected (0.34 sec)
+
+mysql> use oksana;
+Database changed
+mysql> show tables;
+Empty set (0.00 sec)
+
+mysql> CREATE TABLE test (i INT);
+Query OK, 0 rows affected (0.20 sec)
+
+mysql> INSERT INTO test (i) VALUES (1),(2),(3),(4);
+Query OK, 4 rows affected (0.17 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM test;
++------+
+| i    |
++------+
+|    1 |
+|    2 |
+|    3 |
+|    4 |
++------+
+4 rows in set (0.00 sec)
+
+mysql> exit
+Bye
+root@oksana-VirtualBox:/etc/nginx/sites-enabled# history
+    1  exit
+    2  ll
+    3  chnod 777 test5/
+    4  chmod 777 test5/
+    5  ll
+    6  chmod 110 test5/
+    7  ll
+    8  chmod 220 test5/
+    9  ll
+   10  useradd arnold
+   11  passwd arnold
+   12  su arnold
+   13  cd
+   14  ll
+   15  adduser bob
+   16  su bob
+   17  ls
+   18  ll
+   19  mkdir 23
+   20  ll
+   21  chown -R bob 23
+   22  ll
+   23  cd
+   24  exit
+   25  groupadd newgroup
+   26  ll
+   27  chown -R oksana:newgroup test5/
+   28  ll
+   29  usermod -aG newgroup oksana
+   30  tile /etc/group
+   31  tail /etc/group
+   32  exit
+   33  ll /bin/bash
+   34  sudo userdel -rf testuser1
+   35  ll
+   36  history
+   37  exit
+   38  sudo useradd -G -m -s /home testuser5
+   39  sudo useradd -G -s /home testuser5
+   40  sudo useradd -G /home testuser5
+   41  sudo useradd -G /bin testuser5
+   42  cd /bin
+   43  cd /bash
+   44  sudo useradd -G /bin testuser5
+   45  exit
+   46  apt update
+   47  apt search nginx
+   48  apt list nginx
+   49  apt install nginx
+   50  sudo dbkg --configure -a
+   51  apt install nginx
+   52  sudo dbkg --configure -a
+   53  sudo dpkg --configure -a
+   54  apt install nginx
+   55  apt install -y nginx
+   56  cd /etc/nginx
+   57  ll
+   58  apt remove nginx
+   59  ll
+   60  apt autoremove
+   61  ll
+   62  apt install nginx
+   63  cd ..
+   64  apt purge nginx
+   65  cd nginx
+   66  ll
+   67  apt purge Libnginx-mod-http-geoip2 Libnginx-mod-http-image--filter Libnginx-mod-mail Libnginx-mod-stream-geoip2 nginx-common nginx-core
+   68  apt purge libnginx-mod-http-geoip2 libnginx-mod-http-image--filter libnginx-mod-mail libnginx-mod-stream-geoip2 nginx-common nginx-core
+   69  apt purge libnginx-mod-http-image-filter
+   70  cd ..
+   71  cd nginx
+   72  ll
+   73  apt purge libnginx-mod-http-geoip2 libnginx-mod-http-image-filter libnginx-mod-mail libnginx-mod-stream-geoip2 nginx-common nginx-core
+   74  ll
+   75  cd ..
+   76  cd nginx
+   77  apt list mc
+   78  apt show mc
+   79  history
+   80  clear
+   81  cd
+   82  wget https://download.virtualbox.org/viryualbox/6.1.36/virtualbox-6.1_6/1/36-152435~Ubuntu~jammy_amd64.deb
+   83  wget https://download.virtualbox.org/virtualbox/6.1.36/virtualbox-6.1_6/1/36-152435~Ubuntu~jammy_amd64.deb
+   84  wget https://download.virtualbox.org/virtualbox/6.1.36/virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb
+   85  dpkg -i virtualbox-6.1_6.1.36-152435~Ubuntu~jammy_amd64.deb 
+   86  apt -f install
+   87  cd /etc/apt
+   88  ll
+   89  cd sources.list.d/
+   90  ll
+   91  cat > vb.list
+   92  nano vb.list
+   93  apt update
+   94  wget -O- https://www.virtualbox.org/download/oracle_vbox_2016.asc | sudo gpg --dearmor --yes --output /usr/share/keyrings/oracle-virtualbox-2016.gpg
+   95  apt update
+   96  cd /etc
+   97  nano crontab
+   98  cd cron.daily/
+   99  ll
+  100  cd ../cron.d
+  101  nano e2scrub_all
+  102  ps afx l grep [c]ron
+  103  ps afx | grep [c]ron
+  104  crontab -l
+  105  exit
+  106  dpkg -i virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+  107  wget https://download.virtualbox.org/virtualbox/7.0.4/virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+  108  ll
+  109  dpkg -i virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+  110  ll
+  111  rm virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb.1
+  112  ll
+  113  cd ..
+  114  ll
+  115  rm virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+  116  cd ..
+  117  ll
+  118  wget https://download.virtualbox.org/virtualbox/7.0.4/virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+  119  ll
+  120  dpkg -i virtualbox-7.0_7.0.4-154605~Ubuntu~jammy_amd64.deb
+  121  snap find chromium
+  122  snap install chromium
+  123  snap list
+  124  snap remove chromium
+  125  apt update
+  126  apt install -y nginx
+  127  sudo dpkg --configure -a
+  128  apt install cron
+  129  systemctl enable cron
+  130  crontab -e
+  131  exit
+  132  crontab -e
+  133  exit
+  134  ip link set enp0s3 up
+  135  ip a
+  136  ip addr add 127.0.0.1/255.255.255.0 dev enp0s3
+  137  ip route add default via 127.0.0.1
+  138  cd 
+  139  cd /home
+  140  ll
+  141  ls
+  142  ping ya.ru
+  143  cd
+  144  ping ya.ru
+  145  sudo ping ya.ru
+  146  cd /etc/netplan
+  147  ping ya.ru
+  148  google.com
+  149  ip a
+  150  sudo traceroute -l domain.name
+  151  cd
+  152  sudo traceroute -l domain.name
+  153  sudo traceroute -l ya.ru
+  154  exit
+  155  cd ..
+  156  cd /etc
+  157  ll
+  158  cd netplan/
+  159  sudo su
+  160  cd
+  161  exit
+  162  history
+  163  ping ya.ru
+  164  cd
+  165  ping ya.ru
+  166  sudo traceroute -l ya.ru
+  167  exit
+  168  apt install nginx
+  169  ss -ntlp
+  170  ps afx
+  171  curl localhost
+  172  cd /etc/nginx
+  173  ll
+  174  nano nginx.conf
+  175  nginx -t
+  176  systemctl reload nginx
+  177  ps afx
+  178  ll
+  179  cd sites-enabled
+  180  ll
+  181  nano default
+  182  cd /var/www/html
+  183  ll
+  184  nano default
+  185  cd ~-
+  186  nano default
+  187  apt install apache2
+  188  ps afx
+  189  ss -ntlp
+  190  apachectl -t
+  191  systemctl start apache2
+  192  systemctl status apache2
+  193  cd /etc/apache2
+  194  ll
+  195  nano ports.conf
+  196  apachectl -t
+  197  systemctl start apache2
+  198  systemctl status apache2
+  199  ps afx
+  200  ss -ntlp
+  201  ll
+  202  cd sites-enablad/
+  203  cd sites-enabled/
+  204  ll
+  205  nano 000-default.conf 
+  206  apachectl -t
+  207  systemctl reload apache2
+  208  curl localhost:8080
+  209  cd /var/www/html
+  210  ll
+  211  curl localhost:
+  212  curl localhost
+  213  history
+  214  cd /etc/nginx
+  215  cd sites-enabled/
+  216  nano default
+  217  nginx -t
+  218  nano default
+  219  nginx -t
+  220  nano default
+  221  nginx -t
+  222  systemctl reload nginx
+  223  apt install php8.1 libapache2-mod-php8.1
+  224  cd /etc/apache2
+  225  ll
+  226  cd mods-enabled
+  227  ll
+  228  cat php8.1.conf
+  229  cd /var/www/html
+  230  cat > info.php
+  231  nano info.php
+  232  ps afx
+  233  ss -ntlp
+  234  cd /etc/nginx
+  235  cd sites-enabled/
+  236  nano default
+  237  nginx -t
+  238  systemctl reload nginx
+  239  apt install php8.1-fpm
+  240  cd /etc/php
+  241  ll
+  242  cd 8.1/
+  243  cd fpm/
+  244  ll
+  245  cd pool.d/
+  246  ll
+  247  nano www.conf
+  248  cd /etc/nginx
+  249  cd sites-enabled/
+  250  nano default
+  251  nginx -t
+  252  systemctl reload nginx
+  253  nano default
+  254  nginx -t
+  255  systemctl reload nginx
+  256  apt install mysql-server-8.0
+  257  ps afx
+  258  ss -ntlp
+  259  sudo mysql
+  260  history
+root@oksana-VirtualBox:/etc/nginx/sites-enabled#
+
