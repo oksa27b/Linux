@@ -1,0 +1,754 @@
+Урок 8. Скрипты Bash
+
+oksana@oksana-VirtualBox:~$ ls  команда выполнилась но мы не видим код возврата
+oksana@oksana-VirtualBox:~$ echo $? Доллар переменная, ? название переменной
+0 вывелось, значит успешное выполнение, ошибок здесь не было
+oksana@oksana-VirtualBox:~$ cat /etc/shadow 
+cat: /etc/shadow: Отказано в доступе
+oksana@oksana-VirtualBox:~$ echo $? 
+1 код ошибки или код возврата, не  важно что значит эта ошибка, за счет этого кода мы можем построить логическую связку
+Возьмем две команды, у которых будут два разных ответа, у одной вывод будет успешным, у второй будет ошибка
+oksana@oksana-VirtualBox:~$ cat /etc/passwd команда работает
+oksana@oksana-VirtualBox:~$ echo $?
+0
+oksana@oksana-VirtualBox:~$ cat /etc/shadow || echo "Failed!" если первая команда показывает ошибку, мы должны показать эхо
+cat: /etc/shadow: Отказано в доступе
+Failed! Команда выполнена, вернула ошибку, далее напечатали файлд.
+oksana@oksana-VirtualBox:~$ cat /etc/shadow && echo "Failed!" удостоверились, что теперь эхо не работает, потому что первая команда не завершилась успешно
+cat: /etc/shadow: Отказано в доступе
+oksana@oksana-VirtualBox:~$ cat /etc/passwd && echo "Failed!" распечатали файл, все произошло успешно и также мы увидели сообщение 
+oksana@oksana-VirtualBox:~$ cat /etc/passwd && echo "Succcess" суть не меняется, когда выполняем команду с двумя эмприсантами выход будет успешным
+
+
+потоки ввода-вывода
+
+перенаправим стандартный поток вывода в сторону файла
+oksana@oksana-VirtualBox:~$ ls  список файлов
+oksana@oksana-VirtualBox:~$ ls > ls_txt перенаправляем этот вывод в какой то лс тэкст. Мы не видим стандартного потока вывода, он больше не показывается нам в терминале, но если мы посмотрим содержимое файла, то там мы можем увидеть, что команда вводила раньше
+oksana@oksana-VirtualBox:~$ cat ls_txt здесь получится тоже самое, единственная разница, что лс в этом случае выводит элементы в столбик, а так содержимое абсолютно идентично.
+
+Теперь посмотрим как мы можем дозаписывать в этот файл
+oksana@oksana-VirtualBox:~$ ls >> ls_txt
+oksana@oksana-VirtualBox:~$ ls >> ls_txt
+oksana@oksana-VirtualBox:~$ ls >> ls_txt
+oksana@oksana-VirtualBox:~$ ls >> ls_txt
+oksana@oksana-VirtualBox:~$ ls >> ls_txt
+oksana@oksana-VirtualBox:~$ ls >> ls_txt
+повторяя эту команду мы будем записывать много раз
+oksana@oksana-VirtualBox:~$ cat ls_txt здесь мы видим запись последовательно столько раз, сколько мы запускали эту команду
+В случае одинарной скобки у нас так не получится
+oksana@oksana-VirtualBox:~$ ls > ls_txt 
+oksana@oksana-VirtualBox:~$ cat ls_txt здесь будет только один раз выполнение этой команды
+
+посмотрим как мы можем отделить ошибку от обычного стандартного потока вывода
+для этого мы сейчас соберем команду, в которой будет и стандартный поток вывода и стандартный поток ошибок, найдем какой-нибудь файл
+oksana@oksana-VirtualBox:/$ cat /etc/lsb-release он доступен для чтения, мы его можем прочитать, здесь никаких ошибок быть не должно
+oksana@oksana-VirtualBox:/$ cat /etc/lsb-release /etc/shadow и второй файл добавим, который мы не можем прочитать из-за отсутствия прав. Видим одновременный стандартный поток вывода и стандартный поток ошибок, в данном случае ошибка внизу
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=22.04
+DISTRIB_CODENAME=jammy
+DISTRIB_DESCRIPTION="Ubuntu 22.04.1 LTS"
+cat: /etc/shadow: Отказано в доступе
+oksana@oksana-VirtualBox:/$ cat /etc/lsb-release /etc/shadow 2> err.txt теперь мы видим только стандартный поток вывода, потому что он привязан к нашему терминалу
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=22.04
+DISTRIB_CODENAME=jammy
+DISTRIB_DESCRIPTION="Ubuntu 22.04.1 LTS"
+root@oksana-VirtualBox:/# cat /etc/lsb-release /etc/shadow 2> err.txt > std.txt его мы тоже можем перенаправить, тогда команда ничего не будет показывать вообще
+
+теперь на примере этой команды мы можем попробовать объединить эти потоки и направить их в общий файл, который будет содержать абсолютно все. Такая форма будет полезна, если вы скрипт запускаете в кроне, через планировщик задач, потому что в этом случае вы не видите, что вам напечатает скрипт, потому что он выполняется в фоне без вашего участия. Иногда там  могут быть важные сообщения, которые вам нужно прочитать, проанализировать правильно. 
+root@oksana-VirtualBox:/# cat /etc/lsb-release /etc/shadow > all.txt 2>&1 мы объединили стандартные ошибки ввода – вывода, они теперь должны быть в нашем файле олл.ткст
+root@oksana-VirtualBox:/# cat all.txt да, действительно все что мы видели в консоли до этого, мы теперь получили вот в этом файле
+
+Конвеер
+oksana@oksana-VirtualBox:/$ ps afx список процессов
+oksana@oksana-VirtualBox:/$ ps afx | grep ssh найди нам и покажи все что содержит ссш, можем отфильтровать дальше
+   899 ?        Ss     0:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+   3807 ?        Ss     0:00  \_ sshd: oksana [priv]
+   3922 ?        S      0:00      \_ sshd: oksana@pts/0
+  14114 pts/1    D+     0:00          \_ grep --color=auto ssh
+oksana@oksana-VirtualBox:/$ ps afx | grep ssh | grep -v pts
+    899 ?        Ss     0:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+   3807 ?        Ss     0:00  \_ sshd: oksana [priv]
+Если хотим чтобы процесс грепа не попадал сюта, то
+oksana@oksana-VirtualBox:/$ ps afx | grep [s]sh те показываем, что хотим найти символьный пасс, который состоит из одного символа по сути ничего не меняется, но сам процесс грепа здесь не будет показан. Видим только те процессы, котоые нам нужны, это актуально для тех команд пс, когда надо искать какие-то процессы
+    899 ?        Ss     0:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+   3807 ?        Ss     0:00  \_ sshd: oksana [priv]
+   3922 ?        S      0:00      \_ sshd: oksana@pts/0
+
+Теперь посмотрим, что мы можем сделать с логами
+oksana@oksana-VirtualBox:/$ cd /var/log
+oksana@oksana-VirtualBox:/var/log$ ll
+oksana@oksana-VirtualBox:/var/log$ cat syslog искать или  можем тот самый поток отправить на греп и составить наш шаблон
+oksana@oksana-VirtualBox:/var/log$ cat syslog | grep error простой шаблон, мы найдем все сообщения где есть слово эрор
+можем, используя конвеер отфильтровать этот поток дальше, добавить какие-то подробности процесса, добавить число дату, что конкретно нас интересует, философия конвеера состоит в том, что мы не можем сделать в рамках входной команды сложную функциональность, которая нам нужна на выходе
+пример, хотим найти те строчки где есть эрор, но нет слова керл
+oksana@oksana-VirtualBox:/var/log$ cat syslog | grep error | grep -v kernel отфильтровали, получили и можем дальше фильтровать
+oksana@oksana-VirtualBox:/var/log$ cat syslog | grep error | grep -v kernel | grep -i 'sqlite' параметр ай говорит  что мы будем использовать греп без учета регистра. Нашли те ошибки, которые в базе скюэль
+Когда мы строим конвеер, мы его строим слева на право, в конце концов мы можем посчитать сколько ошибок мы получили с учетом фильтрации в нашем блоке
+oksana@oksana-VirtualBox:/var/log$ cat syslog | grep error | grep -v kernel | grep -i 'sqlite' | wc -l на выходе мы получили количество строчек, мы можем сказать, нашли ошибки в сислоге, которые не относятся к ядру и при этом относятся к процессц скюлайт, сколько было ошибок за период, комплексная задача, которая дает нам ценные данные, которые мы можем передать дальше. Это всего лишь одна команда, которую мы используем в конвейере.
+
+Есть полезные операции, которые могут нам отсортировать данные 
+oksana@oksana-VirtualBox:/var/log$ ls -al
+oksana@oksana-VirtualBox:/var/log$ ls -a просмотр всех файлов
+oksana@oksana-VirtualBox:/var/log$ ls -a | sort отправили на сортировку, получаем столбик и по алфавиту отсортировали
+oksana@oksana-VirtualBox:/var/log$ df -h мы здесь распечатали, здесь нам можно посмотреть только корневую файловую систему 
+oksana@oksana-VirtualBox:/var/log$ df -h | grep '/dev/sda'
+конвеер может решать задачи здесь и сейчас к консоле
+
+Bash-скрипты
+oksana@oksana-VirtualBox:/var/log$ printenv показывает нам не только окружение, которые уже определены, сейчас работают в нашей системе. От значений этих переменных будет зависеть то, как будет работать наша оболочка
+SHELL=/bin/bash переменная оболочки
+PWD=/var/log посмотреть текущую директорию
+HOME=/home/oksana домашний каталог и тд
+
+Как можно в оболочке получить значения этих переменных
+oksana@oksana-VirtualBox:/var/log$ echo $PWD  Это команда, которую мы уже использовали вот наша текущая директория
+oksana@oksana-VirtualBox:/var/log$ echo $OLDPWD директория где мы были
+
+для сохранения значений мы используем переменную пользователь
+oksana@oksana-VirtualBox:/var/log$ var1=test эта конструкция назначает строчку тест в качестве переменной вар1. Когда мы записываем переменную знак доллара перед этой переменной не ставится, а вот если мы читаем значение переменной, мы обязаны поставить знак доллар, это особенность синтаксиса баш.
+oksana@oksana-VirtualBox:/var/log$ echo $var1 Давайте проверим, что все получилось
+test да у нас есть такая переменная и здесь есть строчка
+вопрос, кто сможет видеть эту переменную вар1, если у нас одновременно запущенно несколько сессий через ссш работает несколько пользователей, неважно они работают от одного пользователя, от разных.
+Эта переменная будет видна только нам, только нашей сессии баш, которая сейчас работает, при этом даже если мы откроем вложенную сессию из этого терминала, эта переменная исчезнет
+oksana@oksana-VirtualBox:/var/log$ bash
+oksana@oksana-VirtualBox:/var/log$ ps afx
+   6423 pts/1    Ss     0:00      \_ bash наша оболочка 
+  14805 pts/1    S      0:00          \_ bash откуда мы зашли
+  14811 pts/1    R+     0:00              \_ ps afx
+oksana@oksana-VirtualBox:/var/log$ echo $var1 мы вызвали не существующую переменную, он нам показывает пустоту
+
+oksana@oksana-VirtualBox:/var/log$ exit вернемся в родительскую оболочку
+exit
+oksana@oksana-VirtualBox:/var/log$ echo $var1 теперь мы снова увидим эту переменную
+test
+это будет происходить до тех пор, пока мы не выйдем из этого терминала, эта переменная видна только в рамках нашей сессии
+oksana@oksana-VirtualBox:/var/log$ var2=Testftest dsfjslfjsljfjfslj dkjfk ksdfhh мы написали такое сложное что-то, пытаемся исполнить. Вышла ошибка, первая конструкция рабочая
+чтобы весь этот текст добавить в эту переменную, мы должны поставить кавычки одинарные. М
+oksana@oksana-VirtualBox:/var/log$ var2='Testftest dsfjslfjsljfjfslj dkjfk ksdfhh' теперь ошибок нет
+oksana@oksana-VirtualBox:/var/log$ echo $var2 проверим, все получилось, все работает
+Testftest dsfjslfjsljfjfslj dkjfk ksdfhh
+Что мы можем сделать с двойными кавычками
+oksana@oksana-VirtualBox:/var/log$ var2='Test variable'
+oksana@oksana-VirtualBox:/var/log$ var1='text in var1'
+создали две переменные, теперь хотим создать 3 переменную и в нее поместить наши две переменные через пробел
+oksana@oksana-VirtualBox:/var/log$ var3='$var2 $var1' у нас не будет результата
+oksana@oksana-VirtualBox:/var/log$ echo $var3 посмотрим, не то что мы хотели, нам нужны значения переменных через пробел
+$var2 $var1
+oksana@oksana-VirtualBox:/var/log$ var3="$var2 $var1" двойные кавычки дают нам научные интерпаляции переменных, те переменная будет заменена на значение
+oksana@oksana-VirtualBox:/var/log$ echo $var3 теперь все получилось как мы хотели
+Test variable text in var1
+oksana@oksana-VirtualBox:/var/log$ cd
+oksana@oksana-VirtualBox:~$ ls -al список всех файлов
+хотим весь текст, который у нас есть, записать в какой-то конкретный файл
+1 способ обрамление команды в круглые скобки и сначала должен идти знак $
+oksana@oksana-VirtualBox:~$ var_ls=$(ls -al)
+oksana@oksana-VirtualBox:~$ echo $var_ls мы здесь получили вывод команды, он у нас вывелся в виде одной длинной строчки
+2 способ заменяем в команде круглые скобки на бэк дики, те обратные кавычки
+oksana@oksana-VirtualBox:~$ var_ls=$`ls -al` это более традиционная запись команды и можете ее встретить в различных скриптах, которые имеют историю,  с точки зрения функциональности никакой разницы нет, с точки зрения кода бэкдики довольно не заметны из можно пропустить и не понять что происходит в вашей программе
+oksana@oksana-VirtualBox:~$ echo $var_ls проверим результат такой же
+
+создаем первый скрипт на баш
+скрипт это любой текстовый файл
+oksana@oksana-VirtualBox:~$ cat > testsc 
+#!/bin/bash
+
+directory=$1 
+hidden_count=$(ls -A $directory | grep '^\.' | wc -l) 
+
+echo “Hidden files in $directory found: $hidden_count”
+oksana@oksana-VirtualBox:~$ nano testsc имеет синтаксис с подсветкой, удобно редактировать
+#!/bin/bash
+# First script
+
+directory=$1 # set variable
+hidden_count=$(ls -A $directory | grep '^\.' | wc -l)
+
+# Вывести содержимое переменной
+echo "Hidden files in $directory found: $hidden_count"
+oksana@oksana-VirtualBox:~$ ll посмотрим что он действительно у  нас существует
+-rw-rw-r--  1 oksana   oksana        226 мар  1 17:57  testsc
+oksana@oksana-VirtualBox:~$ testsc запускаем его командой, но у нас не получаетмя
+для запуска скрипта есть несколько вариантов
+testsc: команда не найдена
+oksana@oksana-VirtualBox:~$ echo $PATH важно, что эти каталоги будут проверяться именно в этом порядке, нужно для того чтобы иметь несколько версий программы, важно понять какой мы будем версией пользоваться
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+oksana@oksana-VirtualBox:~$ pwd
+oksana@oksana-VirtualBox:~$ ./testsc выполним через относительный путь
+bash: ./testsc: Отказано в доступе 
+oksana@oksana-VirtualBox:~$ ls -al проверим стоят ли биты у нас
+-rw-rw-r--  1 oksana   oksana        226 мар  1 17:57  testsc у него есть права на запись и чтение, битов по умолчанию не будет и это нормально, соответствует нормам безопасности
+oksana@oksana-VirtualBox:~$ chmod +x testsc Делаем бит на исполнение для этого файла даем права
+oksana@oksana-VirtualBox:~$ ./testsc  обратите внимание у нас у файла появилось автодополнение
+oksana@oksana-VirtualBox:~$ nano testsc
+oksana@oksana-VirtualBox:~$ ./testsc /etc
+
+абсолютный путь к этому файлу как работает скрипт
+oksana@oksana-VirtualBox:~$ /home/oksana/testsc
+что будет если у нас не будет прав, а скрипт исполнить нужно
+oksana@oksana-VirtualBox:~$ chmod -x testsc отбираем права
+oksana@oksana-VirtualBox:~$ ll
+oksana@oksana-VirtualBox:~$ bash testsc 
+Hidden files in  found: 17 все работает
+oksana@oksana-VirtualBox:~$ bash testsc /etc
+Hidden files in /etc found: 1 все работает
+В данной момент наш скрипт не исполняется
+oksana@oksana-VirtualBox:~$ ls -al /bin/bash
+-rwxr-xr-x 1 root root 1396520 янв  6  2022 /bin/bash права на исполнение есть во всех вариантах
+
+Возможности скриптов
+oksana@oksana-VirtualBox:~$ ls -al; echo "Done!"
+
+Циклы и ветвления
+oksana@oksana-VirtualBox:~$ man test подсказка
+oksana@oksana-VirtualBox:~$ nano testsc
+#!/bin/bash
+# First script
+
+directory=$1 # set variable
+
+if [ -n $directory ]
+        then
+                echo "Dir OK"
+        else
+                echo "No dir"
+                exit 2
+fi
+
+hidden_count=$(ls -A $directory | grep '^\.' | wc -l)
+oksana@oksana-VirtualBox:~$ nano testsc
+# Вывести содержимое переменной
+echo "Hidden files in $directory found: $hidden_count"
+
+#!/bin/bash
+# First script
+
+if [ -d $1 ]
+        then
+                echo "Dir OK"
+        else
+                echo "No dir"
+                exit 2
+fi
+
+directory=$1 # set variable
+#if [ -n $directory ]
+#        then
+#                echo "Dir OK"
+#        else
+#                echo "No dir"
+#                exit 2
+#fi
+
+hidden_count=$(ls -A $directory | grep '^\.' | wc -l)
+
+# Вывести содержимое переменной
+echo "Hidden files in $directory found: $hidden_count"
+
+oksana@oksana-VirtualBox:~$ ./testsc dkjfdjfdj
+bash: ./testsc: Отказано в доступе
+oksana@oksana-VirtualBox:~$ bash ./testsc
+Dir OK
+Hidden files in  found: 17
+oksana@oksana-VirtualBox:~$ echo $?
+0
+oksana@oksana-VirtualBox:~$ ./testsc /home
+bash: ./testsc: Отказано в доступе
+oksana@oksana-VirtualBox:~$ bash ./testsc /home
+Dir OK
+Hidden files in /home found: 0
+oksana@oksana-VirtualBox:~$ bash ./testsc /home/oksana
+Dir OK
+Hidden files in /home/oksana found: 17
+
+Циклы
+oksana@oksana-VirtualBox:~$ cat > cycles.sh
+#!/bin/bash
+
+# For 1
+for h in file{01..20}
+do 
+        echo $h                        
+done
+
+# While cycle
+c=10
+while [ $c -ge 0 ]
+do
+        echo "Test $c"
+        let "c = c - 1"
+done
+
+# For cycle 2
+for (( c=1; c<=5; c++ ))
+do
+   echo "Попытка номер $c"
+done  
+oksana@oksana-VirtualBox:~$ nano cycles.sh
+oksana@oksana-VirtualBox:~$ chmod +x cycles.sh
+oksana@oksana-VirtualBox:~$ ./cycles.sh 
+oksana@oksana-VirtualBox:~$ type ls
+ls — это псевдонимом для «ls --color=auto»
+oksana@oksana-VirtualBox:~$ type -a ls
+ls — это псевдонимом для «ls --color=auto»
+ls является /usr/bin/ls
+ls является /bin/ls
+oksana@oksana-VirtualBox:~$ which ls 
+/usr/bin/ls
+oksana@oksana-VirtualBox:~$ type cd
+cd — это встроенная команда bash
+oksana@oksana-VirtualBox:~$ type rm
+rm является /usr/bin/rm
+oksana@oksana-VirtualBox:~$ type for
+for — это ключевое слово командного процессора
+oksana@oksana-VirtualBox:~$ nano .bashrc
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+# append to the history file, don't overwrite it
+shopt -s histappend
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+# set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+#force_color_prompt=yes
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+        # We have color support; assume it's compliant with Ecma-48
+        # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+        # a case would tend to support setf rather than setaf.)
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+fi
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m>
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+# colored GCC warnings and errors
+#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tai>
+
+# Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+# enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+
+  fi
+fi
+
+команды лекции
+  549  ls
+  550  echo $?
+  551  cat /etc/shadow
+  552  echo $?
+  553  cat /etc/passwed
+  554  cat /etc/passwd
+  555  qq 
+  556  echo $?
+  557  cat /etc/passwd
+  558  echo $?
+  559  cat /etc/shadow || echo "Failed!"
+  560  cat /etc/shadow && echo "Failed!"
+  561  cat /etc/passwd && echo "Failed!"
+  562  cat /etc/passwd && echo "Succcess"
+  563  ls
+  564  ls > ls_txt
+  565  cat ls_txt 
+  566* cat ls_txt 
+  567  ls >> ls_txt
+  568  cat ls
+  569  cat ls 
+  570  cat ls_tx
+  571  ls > ls_txt 
+  572  cat ls_txt
+  573  cat /etc/lsb-relese
+  574  cat /etc/lsb-relese 
+  575  cd /etc
+  576  ll
+  577  ls
+  578  cd ..
+  579* 
+  580  cat /etc/lsb-relese /etc/shadow
+  581  cat /etc/lsb-release /etc/shadow
+  582  cat /etc/lsb-release /etc/shadow 2> err.txt
+  583  cat /etc/lsb-release /etc/shadow 2> err.txt 
+  584* sudo cat /etc/lsb-release /etc/shadow 2> err.txt
+  585  cd bash
+  586  cd err.txt
+  587  sudo su
+  588  cat /etc/lsb-release /etc/shadow 2> err.txt
+  589  sudo su
+  590  ps afx
+  591  ps afx | grep ssh
+  592  ps afx | grep ssh | grep -v pts
+  593  ps afx | grep [s]sh
+  594  cd /var/log
+  595  ll
+  596  cat syslog
+  597  cat syslog | grep error
+  598  cat syslog | grep error | grep -v ker
+  599  cat syslog | grep error | grep -v kernel
+  600  cat syslog | grep error | grep -v kernel | grep -i 'sqlite'
+  601  cat syslog | grep error | grep -v kernel | grep -i 'sqlite' | wc -l
+  602  ls -al
+  603  ls -a
+  604  ls -a | sort
+  605  df -h
+  606  df -h | grep '/dev/sda'
+  607  printenv
+  608  echo $PWD
+  609  echo $OLDPWD
+  610  var1=test
+  611  echo $var1
+  612  bash
+  613  echo $var1
+  614  var2=Testftest dsfjslfjsljfjfslj dkjfk ksdfhh
+  615  var2='Testftest dsfjslfjsljfjfslj dkjfk ksdfhh'
+  616  echo $var2
+  617  var2='Test variable'
+  618  var1='text in var1'
+  619  var3='$var2 $var1'
+  620  echo $var3
+  621  var3="$var2 $var1"
+  622  echo $var3
+  623  cd
+  624  ls -al
+  625  var_ls=$(ls -al)
+  626  echo $var_ls
+  627  var_ls=$`ls -al`
+  628  echo $var_ls
+  629  cat > testsc
+  630  nano testsc
+  631  ll
+  632  testsc
+  633  echo $PATH
+  634  pwd
+  635  ./testsc
+  636  ls -al
+  637  ./testsc 
+  638  chmod +x testsc
+  639  ./testsc 
+  640  sudo ./testsc 
+  641  sudo su
+  642  cat testsc
+  643  nano testsc
+  644  cat testsc
+  645  ./testsc 
+  646  nano testsc
+  647  ./testsc 
+  648  chmod 
+  649  chmod +x testsc
+  650  cd /test
+  651  cd test_one
+  652  ll
+  653  ./testsc
+  654  cd /testsc
+  655  cd
+  656  cd testsc
+  657  ./testsc
+  658  nano testsc
+  659  pwd
+  660  ./testsc
+  661  ll
+  662  nano testsc
+  663  ls -al
+  664  chmod +x testsc
+  665  ls -al
+  666  ./test
+  667  ./testsc
+  668  nano testsc
+  669  ./testsc /etc
+  670  /home/oksana/testsc
+  671  chmod -x testsc
+  672  ll
+  673  ./testsc
+  674  bash testsc
+  675  bash testsc /etc
+  676  ls -al /bin/bash
+  677  ls -al
+  678  ls -al; echo "Done!"
+  679  man test
+  680  nano testsc
+  681  ./testsc dkjfdjfdj
+  682  bash ./testsc
+  683  echo $?
+  684  bash echo $?
+  685  ./testsc /home
+  686  bash ./testsc /home
+  687  bash ./testsc /home/oksana
+  688  cd
+  689  cat > cycles.sh
+  690  nano cycles.sh
+  691  chmod +x cycles.sh
+  692  ./cycles.sh 
+  693  type ls
+  694  type -a ls
+  695  which ls
+  696  type cd
+  697  type rm
+  698  type for
+  699  nano .bashrc
+  700  history
+oksana@oksana-VirtualBox:~$
+
+  549  ps afx
+  550  echo $var1
+  551  exit
+  552  cmod +x script1
+  553  chmod +x script1
+  554  ./script1
+  555  cat test
+  556  ll
+  557  ls
+  558  echo $?
+  559  cat /etc/shadow
+  560  echo $?
+  561  cat /etc/passwed
+  562  cat /etc/passwd
+  563  qq 
+  564  echo $?
+  565  cat /etc/passwd
+  566  echo $?
+  567  cat /etc/shadow || echo "Failed!"
+  568  cat /etc/shadow && echo "Failed!"
+  569  cat /etc/passwd && echo "Failed!"
+  570  cat /etc/passwd && echo "Succcess"
+  571  ls
+  572  ls > ls_txt
+  573  cat ls_txt 
+  574  cat ls_txt 
+  575  ls >> ls_txt
+  576  cat ls
+  577  cat ls 
+  578  cat ls_txt
+  579  ls > ls_txt 
+  580  cat ls_txt
+  581  cat /etc/lsb-relese
+  582  cat /etc/lsb-relese 
+  583  cd /etc
+  584  ll
+  585  ls
+  586  cd ..
+  587  cat /etc/lsb-relese /etc/shadow
+  588  cat /etc/lsb-release /etc/shadow
+  589  cat /etc/lsb-release /etc/shadow 2> err.txt
+  590  cat /etc/lsb-release /etc/shadow 2> err.txt 
+  591  sudo cat /etc/lsb-release /etc/shadow 2> err.txt
+  592  cd bash
+  593  cd err.txt
+  594  sudo su
+  595  cat /etc/lsb-release /etc/shadow 2> err.txt
+  596  sudo su
+  597  ps afx
+  598  ps afx | grep ssh
+  599  ps afx | grep ssh | grep -v pts
+  600  ps afx | grep [s]sh
+  601  cd /var/log
+  602  ll
+  603  cat syslog
+  604  cat syslog | grep error
+  605  cat syslog | grep error | grep -v ker
+  606  cat syslog | grep error | grep -v kernel
+  607  cat syslog | grep error | grep -v kernel | grep -i 'sqlite'
+  608  cat syslog | grep error | grep -v kernel | grep -i 'sqlite' | wc -l
+  609  ls -al
+  610  ls -a
+  611  ls -a | sort
+  612  df -h
+  613  df -h | grep '/dev/sda'
+  614  printenv
+  615  echo $PWD
+  616  echo $OLDPWD
+  617  var1=test
+  618  echo $var1
+  619  bash
+  620  echo $var1
+  621  var2=Testftest dsfjslfjsljfjfslj dkjfk ksdfhh
+  622  var2='Testftest dsfjslfjsljfjfslj dkjfk ksdfhh'
+  623  echo $var2
+  624  var2='Test variable'
+  625  var1='text in var1'
+  626  var3='$var2 $var1'
+  627  echo $var3
+  628  var3="$var2 $var1"
+  629  echo $var3
+  630  cd
+  631  ls -al
+  632  var_ls=$(ls -al)
+  633  echo $var_ls
+  634  var_ls=$`ls -al`
+  635  echo $var_ls
+  636  cat > testsc
+  637  nano testsc
+  638  ll
+  639  testsc
+  640  echo $PATH
+  641  pwd
+  642  ./testsc
+  643  ls -al
+  644  ./testsc 
+  645  chmod +x testsc
+  646  ./testsc 
+  647  sudo ./testsc 
+  648  sudo su
+  649  cat testsc
+  650  nano testsc
+  651  cat testsc
+  652  ./testsc 
+  653  nano testsc
+  654  ./testsc 
+  655  chmod 
+  656  chmod +x testsc
+  657  cd /test
+  658  cd test_one
+  659  ll
+  660  ./testsc
+  661  cd /testsc
+  662  cd
+  663  cd testsc
+  664  ./testsc
+  665  nano testsc
+  666  pwd
+  667  ./testsc
+  668  ll
+  669  nano testsc
+  670  ls -al
+  671  chmod +x testsc
+  672  ls -al
+  673  ./test
+  674  ./testsc
+  675  nano testsc
+  676  ./testsc /etc
+  677  /home/oksana/testsc
+  678  chmod -x testsc
+  679  ll
+  680  ./testsc
+  681  bash testsc
+  682  bash testsc /etc
+  683  ls -al /bin/bash
+  684  ls -al
+  685  ls -al; echo "Done!"
+  686  man test
+  687  nano testsc
+  688  ./testsc dkjfdjfdj
+  689  bash ./testsc
+  690  echo $?
+  691  bash echo $?
+  692  ./testsc /home
+  693  bash ./testsc /home
+  694  bash ./testsc /home/oksana
+  695  cd
+  696  cat > cycles.sh
+  697  nano cycles.sh
+  698  chmod +x cycles.sh
+  699  ./cycles.sh 
+  700  type ls
+  701  type -a ls
+  702  which ls
+  703  type cd
+  704  type rm
+  705  type for
+  706  nano .bashrc
+  707  history
+  708  cd
+  709  cat > dirclear.sh
+  710  chmod +x dirclear.sh
+  711  ./dirclear.sh 
+  712  type ls
+  713  nano dirclear.sh
+  714  cat > ownersort.sh
+  715  nano ownersort.sh
+  716  chmod +x ownersort.sh
+  717  ./ownersort.sh 
+  718  cd /home/oksana
+  719  cd /home
+  720  cd /oksana
+  721  ./
+  722  cd
+  723  ./
+  724  ./ow
+  725  cd
+  726  chmod +x ownersort.sh
+  727  ./ownersort.sh 
+  728  home
+  729  sudou su
+  730  sudo su
+  731  history
+oksana@oksana-VirtualBox:~$
